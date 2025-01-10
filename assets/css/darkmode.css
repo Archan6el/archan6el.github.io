@@ -72,6 +72,21 @@ td {
     background-color: #121212;            /* Dark background color for cells */
 }
 
+/* Style for the table body and rows */
+tbody {
+    background-color: #121212;            /* Dark background for tbody */
+}
+
+/* Style for individual cells (td) */
+tbody td {
+    padding: 10px 15px;                   /* Padding inside cells */
+    text-align: left;                     /* Left-align text inside cells */
+    border-left: 1px solid #444;          /* Border between cells on the left */
+    border-right: 1px solid #444;         /* Border between cells on the right */
+    color: #e0e0e0;                       /* Light gray text color */
+    background-color: #121212;            /* Dark background color for cells */
+}
+
 
 
 
