@@ -38,39 +38,41 @@ code, pre {
 
 /* Style for all tables on the page */
 table {
-    width: 100%;                          /* Table takes up full width */
+    width: 80%;                           /* Set a specific width to make the table less wide */
+    max-width: 800px;                     /* Optional: limit the maximum width */
+    margin: 20px auto;                    /* Center the table horizontally and add margin around */
     border-collapse: collapse;            /* Collapse borders between cells */
-    background-color: #f8f8f8;            /* Light gray background for the entire table */
-    margin: 20px 0;                       /* Margin around the table */
+    background-color: #000;               /* Set the background color of the table to black */
+    color: #fff;                          /* Set the text color to white for contrast */
     border-radius: 8px;                   /* Optional: rounded corners for the table */
-    color: #333;                          /* Dark text color for readability */
 }
 
 /* Style for the individual cells */
 table td, table th {
     padding: 10px;                        /* Padding inside each cell */
     text-align: left;                     /* Left-align the text inside cells */
-    border: 1px solid #ddd;               /* Light border around each cell */
+    border: 1px solid #444;               /* Darker border around each cell */
 }
 
 /* Styling for rows */
 table tr:nth-child(even) {
-    background-color: #f2f2f2;            /* Alternate row background for readability */
+    background-color: #333;               /* Dark gray for alternate rows */
 }
 
 table tr:hover {
-    background-color: #ddd;               /* Hover effect for rows */
+    background-color: #555;               /* Darker gray on row hover */
 }
 
 /* Styling for the header cells (if any) */
 table th {
-    background-color: #ddd;               /* Light background for header */
+    background-color: #222;               /* Dark background for header */
     font-weight: bold;                    /* Bold text for the headers */
 }
 
 /* Optional: Styling for strong tags in cells to highlight labels */
 table td strong {
-    color: #0056b3;                       /* Change color of label text to blue */
+    color: #00b3b3;                       /* Change color of label text to teal */
 }
+
 
 
