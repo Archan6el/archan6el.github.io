@@ -36,43 +36,57 @@ code, pre {
     overflow-x: auto;
 }
 
-/* Style for all tables on the page */
+/* Style for the entire table */
 table {
-    width: 80%;                           /* Set a specific width to make the table less wide */
-    max-width: 800px;                     /* Optional: limit the maximum width */
-    margin: 20px auto;                    /* Center the table horizontally and add margin around */
-    border-collapse: collapse;            /* Collapse borders between cells */
-    background-color: #000;               /* Set the background color of the table to black */
-    color: #fff;                          /* Set the text color to white for contrast */
-    border-radius: 8px;                   /* Optional: rounded corners for the table */
+    width: 80%;                           /* Set the table to 80% width */
+    max-width: 800px;                     /* Limit the table's maximum width */
+    margin: 20px auto;                    /* Center the table horizontally and add space around */
+    border-collapse: collapse;            /* Collapse table borders */
+    background-color: #111;               /* Set background color of table to dark gray */
+    color: #fff;                          /* Text color to white */
+    border-radius: 8px;                   /* Optional: rounded corners */
 }
 
-/* Style for the individual cells */
-table td, table th {
-    padding: 10px;                        /* Padding inside each cell */
-    text-align: left;                     /* Left-align the text inside cells */
-    border: 1px solid #444;               /* Darker border around each cell */
-}
-
-/* Styling for rows */
-table tr:nth-child(even) {
-    background-color: #333;               /* Dark gray for alternate rows */
-}
-
-table tr:hover {
-    background-color: #555;               /* Darker gray on row hover */
-}
-
-/* Styling for the header cells (if any) */
-table th {
-    background-color: #222;               /* Dark background for header */
+/* Style for the table headers (inside <thead>) */
+thead th {
+    background-color: #222;               /* Dark background for table headers */
+    color: #fff;                          /* White text for headers */
+    padding: 12px 15px;                   /* Padding inside header cells */
+    text-align: left;                     /* Left-align text in header */
     font-weight: bold;                    /* Bold text for the headers */
 }
 
-/* Optional: Styling for strong tags in cells to highlight labels */
-table td strong {
-    color: #00b3b3;                       /* Change color of label text to teal */
+/* Style for rows (tr) */
+tr {
+    border-bottom: 1px solid #444;        /* Border between rows */
 }
+
+/* Style for the individual cells (td) */
+td {
+    padding: 10px 15px;                   /* Padding inside cells */
+    text-align: left;                     /* Left-align text inside cells */
+    border-left: 1px solid #444;          /* Border between cells on the left */
+    border-right: 1px solid #444;         /* Border between cells on the right */
+}
+
+/* Optional: Alternate row colors */
+tr:nth-child(even) {
+    background-color: #333;               /* Darker gray for alternate rows */
+}
+
+tr:nth-child(odd) {
+    background-color: #222;               /* Even darker background for odd rows */
+}
+
+tr:hover {
+    background-color: #555;               /* Highlight rows on hover */
+}
+
+/* Optional: Style for strong tags within table cells */
+td strong {
+    color: #00b3b3;                       /* Color for text inside <strong> tags */
+}
+
 
 
 
