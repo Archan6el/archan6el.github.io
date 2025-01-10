@@ -35,3 +35,31 @@ code, pre {
     display: block;
     overflow-x: auto;
 }
+
+/* Example CSS for tables */
+table, th, td {
+    border: 1px solid #ccc;
+    padding: 8px;
+}
+
+/* Dark mode adjustments */
+table {
+    background-color: #333;
+    color: #fff;
+}
+
+th {
+    background-color: #555;
+}
+
+td {
+    background-color: #444;
+}
+
+.box-info {
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #555;
+    padding: 10px;
+}
+
