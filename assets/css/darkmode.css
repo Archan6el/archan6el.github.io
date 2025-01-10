@@ -57,48 +57,19 @@ thead th {
     font-weight: bold;                    /* Bold text for the headers */
 }
 
-/* Style for the individual cells (td) */
+/* Style for the table body rows and cells */
+tbody {
+    background-color: #121212;            /* Dark background for the body */
+}
+
+/* Style for individual cells (td) */
 td {
     padding: 10px 15px;                   /* Padding inside cells */
     text-align: left;                     /* Left-align text inside cells */
     border-left: 1px solid #444;          /* Border between cells on the left */
     border-right: 1px solid #444;         /* Border between cells on the right */
     color: #e0e0e0;                       /* Light gray text color */
-}
-
-/* Optional: Style for the second column with centered content */
-td[style="text-align: center"] {
-    text-align: center;                   /* Center-align content */
-}
-
-/* Optional: Alternate row colors for a more varied dark background */
-tr:nth-child(even) {
-    background-color: #222;               /* Slightly lighter gray for even rows */
-}
-
-tr:nth-child(odd) {
-    background-color: #1d1d1d;            /* Slightly darker gray for odd rows */
-}
-
-/* Hover effect for rows */
-tr:hover {
-    background-color: #333;               /* Lighter gray for hover effect */
-}
-
-/* Style for anchor tags (links) */
-a {
-    color: #00b3b3;                       /* Teal color for links */
-    text-decoration: none;                 /* Remove underline from links */
-}
-
-a:hover {
-    text-decoration: underline;           /* Add underline when hovering over links */
-}
-
-/* Style for images inside the table (centered) */
-img {
-    max-width: 100px;                     /* Limit the size of the image */
-    border-radius: 4px;                   /* Optional: rounded corners for the image */
+    background-color: #121212;            /* Dark background color for cells */
 }
 
 
