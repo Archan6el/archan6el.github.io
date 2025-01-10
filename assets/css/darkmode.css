@@ -36,30 +36,41 @@ code, pre {
     overflow-x: auto;
 }
 
-/* Example CSS for tables */
-table, th, td {
-    border: 1px solid #ccc;
-    padding: 8px;
-}
-
-/* Dark mode adjustments */
+/* Style for all tables on the page */
 table {
-    background-color: #333;
-    color: #fff;
+    width: 100%;                          /* Table takes up full width */
+    border-collapse: collapse;            /* Collapse borders between cells */
+    background-color: #f8f8f8;            /* Light gray background for the entire table */
+    margin: 20px 0;                       /* Margin around the table */
+    border-radius: 8px;                   /* Optional: rounded corners for the table */
+    color: #333;                          /* Dark text color for readability */
 }
 
-th {
-    background-color: #555;
+/* Style for the individual cells */
+table td, table th {
+    padding: 10px;                        /* Padding inside each cell */
+    text-align: left;                     /* Left-align the text inside cells */
+    border: 1px solid #ddd;               /* Light border around each cell */
 }
 
-td {
-    background-color: #444;
+/* Styling for rows */
+table tr:nth-child(even) {
+    background-color: #f2f2f2;            /* Alternate row background for readability */
 }
 
-.box-info {
-    background-color: #333;
-    color: #fff;
-    border: 1px solid #555;
-    padding: 10px;
+table tr:hover {
+    background-color: #ddd;               /* Hover effect for rows */
 }
+
+/* Styling for the header cells (if any) */
+table th {
+    background-color: #ddd;               /* Light background for header */
+    font-weight: bold;                    /* Bold text for the headers */
+}
+
+/* Optional: Styling for strong tags in cells to highlight labels */
+table td strong {
+    color: #0056b3;                       /* Change color of label text to blue */
+}
+
 
