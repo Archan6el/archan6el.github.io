@@ -42,23 +42,19 @@ table {
     max-width: 800px;                     /* Limit the table's maximum width */
     margin: 20px auto;                    /* Center the table horizontally and add space around */
     border-collapse: collapse;            /* Collapse table borders */
-    background-color: #111;               /* Set background color of table to dark gray */
-    color: #fff;                          /* Text color to white */
+    background-color: #121212;            /* Dark background color */
+    color: #e0e0e0;                       /* Light gray text color */
     border-radius: 8px;                   /* Optional: rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);  /* Optional: shadow for better visibility */
 }
 
 /* Style for the table headers (inside <thead>) */
 thead th {
-    background-color: #222;               /* Dark background for table headers */
+    background-color: #1d1d1d;            /* Darker gray background for table headers */
     color: #fff;                          /* White text for headers */
     padding: 12px 15px;                   /* Padding inside header cells */
     text-align: left;                     /* Left-align text in header */
     font-weight: bold;                    /* Bold text for the headers */
-}
-
-/* Style for rows (tr) */
-tr {
-    border-bottom: 1px solid #444;        /* Border between rows */
 }
 
 /* Style for the individual cells (td) */
@@ -67,25 +63,44 @@ td {
     text-align: left;                     /* Left-align text inside cells */
     border-left: 1px solid #444;          /* Border between cells on the left */
     border-right: 1px solid #444;         /* Border between cells on the right */
+    color: #e0e0e0;                       /* Light gray text color */
 }
 
-/* Optional: Alternate row colors */
+/* Optional: Style for the second column with centered content */
+td[style="text-align: center"] {
+    text-align: center;                   /* Center-align content */
+}
+
+/* Optional: Alternate row colors for a more varied dark background */
 tr:nth-child(even) {
-    background-color: #333;               /* Darker gray for alternate rows */
+    background-color: #222;               /* Slightly lighter gray for even rows */
 }
 
 tr:nth-child(odd) {
-    background-color: #222;               /* Even darker background for odd rows */
+    background-color: #1d1d1d;            /* Slightly darker gray for odd rows */
 }
 
+/* Hover effect for rows */
 tr:hover {
-    background-color: #555;               /* Highlight rows on hover */
+    background-color: #333;               /* Lighter gray for hover effect */
 }
 
-/* Optional: Style for strong tags within table cells */
-td strong {
-    color: #00b3b3;                       /* Color for text inside <strong> tags */
+/* Style for anchor tags (links) */
+a {
+    color: #00b3b3;                       /* Teal color for links */
+    text-decoration: none;                 /* Remove underline from links */
 }
+
+a:hover {
+    text-decoration: underline;           /* Add underline when hovering over links */
+}
+
+/* Style for images inside the table (centered) */
+img {
+    max-width: 100px;                     /* Limit the size of the image */
+    border-radius: 4px;                   /* Optional: rounded corners for the image */
+}
+
 
 
 
