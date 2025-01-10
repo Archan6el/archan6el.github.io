@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="assets/css/darkmode.css">
+<link rel="stylesheet" href="/assets/css/darkmode.css">
 
 
 ## Welcome to my blog
