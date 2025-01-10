@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="assets/css/darkmode.css">
+<link rel="stylesheet" href="/assets/css/darkmode.css">
 
 # Devvortex-Writeup
 A write-up of the Hack The Box devvortex machine for the TAMU Cybersecurity Club 
