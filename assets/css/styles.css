@@ -9,6 +9,7 @@
     --link-color: #1e90ff;
     --hover-color: #ff8c00;
 }
+/*
 
 body {
     background-color: var(--bg-color);
@@ -41,41 +42,42 @@ code, pre {
     overflow-x: auto;
 }
 
-/* Style for the entire table */
+
 table {
-    width: 80%;                           /* Set the table to 80% width */
-    max-width: 800px;                     /* Limit the table's maximum width */
-    margin: 20px auto;                    /* Center the table horizontally and add space around */
-    border-collapse: collapse;            /* Collapse table borders */
-    background-color: #121212;            /* Dark background color */
-    color: #e0e0e0;                       /* Light gray text color */
-    border-radius: 8px;                   /* Optional: rounded corners */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);  /* Optional: shadow for better visibility */
+    width: 80%;                          
+    max-width: 800px;                   
+    margin: 20px auto;                    
+    border-collapse: collapse;          
+    background-color: #121212;          
+    color: #e0e0e0;                       
+    border-radius: 8px;                   
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);  
 }
 
-/* Style for the table headers (inside <thead>) */
+
 thead th {
-    background-color: #1d1d1d;            /* Darker gray background for table headers */
-    color: #fff;                          /* White text for headers */
-    padding: 12px 15px;                   /* Padding inside header cells */
-    text-align: left;                     /* Left-align text in header */
-    font-weight: bold;                    /* Bold text for the headers */
+    background-color: #1d1d1d;            
+    color: #fff;                  
+    padding: 12px 15px;           
+    text-align: left;                   
+    font-weight: bold;             
 }
 
-/* Style for the table body and rows */
+
 tbody {
-    background-color: #121212;            /* Dark background for tbody */
+    background-color: #121212;         
 }
 
-/* Style for individual cells (td) */
+
 tbody td {
-    padding: 10px 15px;                   /* Padding inside cells */
-    text-align: left;                     /* Left-align text inside cells */
-    border-left: 1px solid #444;          /* Border between cells on the left */
-    border-right: 1px solid #444;         /* Border between cells on the right */
-    color: #e0e0e0;                       /* Light gray text color */
-    background-color: #121212;            /* Dark background color for cells */
+    padding: 10px 15px;            
+    text-align: left;                 
+    border-left: 1px solid #444;         
+    border-right: 1px solid #444;       
+    color: #e0e0e0;                   
+    background-color: #121212;         
 }
+*/
 
 #toc {
     position: fixed;
