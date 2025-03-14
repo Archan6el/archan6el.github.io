@@ -12,6 +12,7 @@
 </div>
 
 <div class="push-right-content">
+	
 ## Background:
 
 >Foreign adversaries have long strived to gain an advantage against the might of the United States Armed Forces. While matching the USA on the battlefield is a costly and risky proposition, our adversaries are always looking for ways to balance the playing field. A serious and real threat is the infiltration and sabotage of military operations before the fight even breaks out.
