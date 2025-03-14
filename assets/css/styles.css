@@ -106,4 +106,6 @@ tbody td {
     text-decoration: underline;
 }
 
-
+.pushed-right {
+    margin-left: 280px;  /* This will push content to the right on the specific page */
+}
