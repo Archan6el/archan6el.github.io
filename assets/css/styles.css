@@ -105,3 +105,8 @@ tbody td {
 #toc a:hover {
     text-decoration: underline;
 }
+
+.push-right-content {
+    margin-left: 22%;
+    padding: 20px;
+  }
