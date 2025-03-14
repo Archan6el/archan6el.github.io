@@ -82,13 +82,14 @@ tbody td {
 #toc {
     position: fixed;
     left: 10px;
-    top: 100px; /* Adjust this value to push it lower */
+    top: 150px; /* Adjust to move it lower */
     width: 200px;
-    background: #161b22; /* Darker shade to match the theme */
-    padding: 10px;
+    background: #0d1117; /* Match the Hacker theme background */
+    padding: 15px;
     border-radius: 5px;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5); /* Darker shadow for consistency */
     color: var(--text-color);
+    border: 1px solid #30363d; /* Subtle border to blend in */
 }
 
 #toc ul {
@@ -102,7 +103,12 @@ tbody td {
 
 #toc a {
     text-decoration: none;
-    color: #007bff;
+    color: #58a6ff; /* Hacker theme link color */
+}
+
+#toc a:hover {
+    text-decoration: underline;
+    color: var(--hover-color);
 }
 
 #toc a:hover {
