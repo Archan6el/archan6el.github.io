@@ -77,6 +77,34 @@ tbody td {
     background-color: #121212;            /* Dark background color for cells */
 }
 
+#toc {
+    position: fixed;
+    left: 10px;
+    top: 50px;
+    width: 200px;
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#toc ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+#toc li {
+    margin-bottom: 8px;
+}
+
+#toc a {
+    text-decoration: none;
+    color: #007bff;
+}
+
+#toc a:hover {
+    text-decoration: underline;
+}
 
 
 
