@@ -82,12 +82,13 @@ tbody td {
 #toc {
     position: fixed;
     left: 10px;
-    top: 50px;
+    top: 100px; /* Adjust this value to push it lower */
     width: 200px;
-    background: #f8f9fa;
+    background: #161b22; /* Darker shade to match the theme */
     padding: 10px;
     border-radius: 5px;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    color: var(--text-color);
 }
 
 #toc ul {
