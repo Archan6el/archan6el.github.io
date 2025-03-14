@@ -1,5 +1,3 @@
-<link rel="stylesheet" href="/assets/css/styles.css">
-
 <div id="toc">
   <h2>Contents</h2>
   <ul>
