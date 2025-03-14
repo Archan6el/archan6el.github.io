@@ -12,8 +12,6 @@
     <li><a href="#task-5---the-153---reverse-engineering-cryptography">Task 5 - The #153 - (Reverse Engineering, Cryptography)</a></li>
   </ul>
 </div>
-
-<div class="push-right-content">
 	
 ## Background:
 
@@ -2536,5 +2534,3 @@ Submitting this solves Task 5 for us, and we are now high performers!
 
 **Results:**
 >It worked! OMG that was some bad crypto.
-
-</div>
