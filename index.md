@@ -6,4 +6,5 @@
 
 # Writeups
 
+- [NSA Codebreaker 2024 Write Up](/writeups/nsa-codebreaker-2024.md)
 - [HackTheBox Write-Up: Devvortex](/writeups/devvortex.md)
