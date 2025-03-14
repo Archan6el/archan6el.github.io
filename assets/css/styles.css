@@ -106,6 +106,9 @@ tbody td {
     text-decoration: underline;
 }
 
-
+/* Push main content to the right so TOC doesn't overlap it */
+body2 {
+    margin-left: 280px; /* Adjust this based on TOC width */
+}
 
 
