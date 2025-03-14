@@ -1,8 +1,3 @@
----
-layout: default
-css_class: "pushed-right"
----
-
 <div id="toc">
   <h2>Contents</h2>
   <ul>
