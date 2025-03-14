@@ -1,4 +1,4 @@
-<link rel="stylesheet" href="/assets/css/styles.css">
+<link rel="stylesheet" href="{{ '/assets/css/styles.css' | relative_url }}">
 
 <div id="toc">
   <h2>Contents</h2>
