@@ -1,11 +1,16 @@
-## Contents
-- [Background](#background)
-- [Task 0 - (Community of Practice, Discord Server)](#task-0---community-of-practice-discord-server)
-- [Task 1 - No Token Left Behind - (File Forensics)](#task-1---no-token-left-behind---file-forensics)
-- [Task 2 - Driving Me Crazy - (Forensics, DevOps)](#task-2---driving-me-crazy---forensics-devops)
-- [Task 3 - How did they get in? - (Reverse Engineering, Vulnerability Research)](#task-3---how-did-they-get-in---reverse-engineering-vulnerability-research)
-- [Task 4 - LLMs never lie - (Programming, Forensics)](#task-4---llms-never-lie---programming-forensics)
-- [Task 5 - The #153 - (Reverse Engineering, Cryptography)](#task-5---the-153---reverse-engineering-cryptography)
+<div id="toc">
+  <h2>Contents</h2>
+  <ul>
+    <li><a href="#background">Background</a></li>
+    <li><a href="#task-0---community-of-practice-discord-server">Task 0 - (Community of Practice, Discord Server)</a></li>
+    <li><a href="#task-1---no-token-left-behind---file-forensics">Task 1 - No Token Left Behind - (File Forensics)</a></li>
+    <li><a href="#task-2---driving-me-crazy---forensics-devops">Task 2 - Driving Me Crazy - (Forensics, DevOps)</a></li>
+    <li><a href="#task-3---how-did-they-get-in---reverse-engineering-vulnerability-research">Task 3 - How did they get in? - (Reverse Engineering, Vulnerability Research)</a></li>
+    <li><a href="#task-4---llms-never-lie---programming-forensics">Task 4 - LLMs never lie - (Programming, Forensics)</a></li>
+    <li><a href="#task-5---the-153---reverse-engineering-cryptography">Task 5 - The #153 - (Reverse Engineering, Cryptography)</a></li>
+  </ul>
+</div>
+
 
 ## Background:
 
