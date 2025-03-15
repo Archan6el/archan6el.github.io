@@ -87,15 +87,18 @@ tbody td {
 }
 
 #toc {
-    position: fixed;
-    top: 20px; /* Adjust to control vertical positioning */
-    left: 0; /* Pushes it all the way to the left */
-    width: 200px; /* Adjust as needed */
-    background: #161b22;
+    position: -webkit-sticky; /* For Safari support */
+    position: sticky; /* For modern browsers */
+    top: 20px; /* Adjust based on how far you want it from the top */
+    left: 0; /* Stick it to the left side of the viewport */
+    width: 200px; /* Width of the TOC */
+    background: #161b22; /* Dark background to match the theme */
     padding: 10px;
     border-radius: 5px;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
     color: var(--text-color);
+    margin-right: 20px; /* Space between TOC and content */
+    z-index: 1000; /* Ensures the TOC stays above content if needed */
 }
 
 #toc ul {
