@@ -1759,9 +1759,11 @@ Thankfully, we have another tool for this, [PyLingual](https://pylingual.io/). T
 This gets us the following Python code for each file:
 
 <details>
-	<Summary><b>Click to expand pidgin_rsa_encryption.py</b></Summary>
+	
+<Summary><b>Click to expand pidgin_rsa_encryption.py</b></Summary>
 
  ```Python
+
 # Decompiled with PyLingual (https://pylingual.io)
 # Internal filename: pidgin_rsa_encryption.py
 # Bytecode version: 3.11a7e (3495)
@@ -1890,7 +1892,9 @@ def main():
 if __name__ == '__main__':
     main()
 ```
+
 </details>
+
 
 <details>
 	<Summary><b>Click to expand pm.py</b></Summary>
