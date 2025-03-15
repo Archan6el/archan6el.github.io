@@ -1762,8 +1762,8 @@ This gets us the following Python code for each file:
 	
 <Summary><b>Click to expand pidgin_rsa_encryption.py</b></Summary>
 
+```Python
 
-<pre><code>
 # Decompiled with PyLingual (https://pylingual.io)
 # Internal filename: pidgin_rsa_encryption.py
 # Bytecode version: 3.11a7e (3495)
@@ -1891,7 +1891,7 @@ def main():
         print("Invalid mode. Use 'send' or 'receive'.")
 if __name__ == '__main__':
     main()
-</code></pre>
+```
 
 </details>
 
