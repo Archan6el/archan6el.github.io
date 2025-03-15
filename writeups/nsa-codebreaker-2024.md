@@ -1,6 +1,4 @@
 <link rel="stylesheet" href="{{ '/assets/css/styles.css' | relative_url }}">
-
-<div id="page-container">
 	
 <aside id="toc">
   <h2>Contents</h2>
@@ -2536,5 +2534,3 @@ Submitting this solves Task 5 for us, and we are now high performers!
 
 **Results:**
 >It worked! OMG that was some bad crypto.
-
-</div>
