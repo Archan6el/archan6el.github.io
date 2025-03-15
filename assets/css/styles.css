@@ -87,15 +87,17 @@ tbody td {
 }
 
 #toc {
-    position: fixed;
-    top: 200px; /* Adjust to control vertical positioning */
-    left: 0; /* Pushes it all the way to the left */
-    width: 200px; /* Adjust as needed */
+    position: sticky;
+    top: 20px; /* Adjust to match your layout */
+    left: 10px;
+    width: 200px;
     background: #161b22;
     padding: 10px;
     border-radius: 5px;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
     color: var(--text-color);
+    float: left; /* Keeps it to the left of content */
+    margin-right: 20px; /* Adds spacing between TOC and text */
 }
 
 #toc ul {
