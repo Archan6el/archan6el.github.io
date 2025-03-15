@@ -79,6 +79,13 @@ tbody td {
 }
 */
 
+#page-container {
+    display: flex;
+    align-items: flex-start; /* Align TOC and content at the top */
+    max-width: 1200px; /* Adjust width as needed */
+    margin: 0 auto; /* Center the layout */
+}
+
 #toc {
     position: sticky;
     top: 20px; /* Adjust to match your layout */
