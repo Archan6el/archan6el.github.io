@@ -6,5 +6,5 @@
 
 # Writeups
 
-- [NSA Codebreaker 2024 Write Up](/writeups/nsa-codebreaker-2024.md)
+- [NSA Codebreaker 2024 Write Up](https://github.com/Archan6el/NSA-Codebreaker-2024)
 - [HackTheBox Write-Up: Devvortex](/writeups/devvortex.md)
