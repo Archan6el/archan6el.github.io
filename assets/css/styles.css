@@ -89,7 +89,7 @@ tbody td {
 #toc {
   position: sticky;
   top: 20px;  /* Keep this if you want it to be sticky */
-  left: -20px;  /* Keep the negative left value if you want to push it further left */
+  left: -200px;  /* Keep the negative left value if you want to push it further left */
   width: 180px;  /* Reduce width for a smaller TOC */
   background: #161b22;
   padding: 5px;  /* Reduce padding to make the box smaller */
