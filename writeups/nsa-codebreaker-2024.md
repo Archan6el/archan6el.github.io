@@ -1,6 +1,6 @@
 ---
 layout: codebreaker2024
-title: "My NSA Codebreaker Challenge"
+title: "NSA Codebreaker 2024"
 ---
 	
 ## Background:
