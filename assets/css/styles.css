@@ -89,7 +89,7 @@ tbody td {
 #toc {
     position: sticky;
     top: 20px; /* Adjust to match your layout */
-    left: 0;
+    left: -50px;
     width: 200px;
     background: #161b22;
     padding: 10px;
