@@ -87,37 +87,38 @@ tbody td {
 }
 
 #toc {
-    position: sticky;
-    top: 20px;
-    left: -20px;
-    width: 250px; /* Adjust the width as needed */
-    background: #161b22;
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-    color: var(--text-color);
-    margin-right: 20px; /* Adds space between TOC and content */
+  position: sticky;
+  top: 20px;  /* Keep this if you want it to be sticky */
+  left: -20px;  /* Keep the negative left value if you want to push it further left */
+  width: 180px;  /* Reduce width for a smaller TOC */
+  background: #161b22;
+  padding: 5px;  /* Reduce padding to make the box smaller */
+  border-radius: 5px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+  color: var(--text-color);
+  margin-right: 20px;  /* Keeps space between TOC and content */
+  z-index: 10;
+  font-size: 12px;  /* Reduce font size for smaller text */
+}
+
+#toc h2 {
+  font-size: 14px;  /* Adjust the header size within the TOC */
 }
 
 #toc ul {
-    list-style-type: none;
-    padding: 0;
+  padding-left: 10px;  /* Adjust the padding for the list items */
 }
 
 #toc li {
-    margin-bottom: 8px;
+  margin-bottom: 5px;  /* Reduce margin between list items */
 }
 
 #toc a {
-    text-decoration: none;
-    color: #58a6ff; /* Hacker theme link color */
+  color: #ffffff;  /* Keep links white */
+  text-decoration: none;
+  font-size: 12px;  /* Reduce font size of the links */
 }
 
 #toc a:hover {
-    text-decoration: underline;
-    color: var(--hover-color);
-}
-
-#toc a:hover {
-    text-decoration: underline;
+  text-decoration: underline;  /* Underline links on hover */
 }
