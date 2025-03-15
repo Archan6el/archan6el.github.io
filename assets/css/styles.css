@@ -87,16 +87,16 @@ tbody td {
 }
 
 #toc {
-    position: fixed;             /* Keep it fixed after scroll */
-    top: 80px;                    /* Start the TOC below the header */
-    left: 0;                  /* Make the TOC move further to the left */
-    width: 200px;                 /* Width of the TOC */
-    background: #161b22;          /* Dark background to match theme */
+    position: sticky;
+    top: 20px;
+    left: 0;
+    width: 250px; /* Adjust the width as needed */
+    background: #161b22;
     padding: 10px;
     border-radius: 5px;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); /* Shadow for depth */
-    color: var(--text-color);      /* Text color */
-    z-index: 1000;                /* Ensures it stays above content */
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    color: var(--text-color);
+    margin-right: 20px; /* Adds space between TOC and content */
 }
 
 #toc ul {
