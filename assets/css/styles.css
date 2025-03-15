@@ -87,9 +87,9 @@ tbody td {
 }
 
 #toc {
-    position: sticky;             /* Keep it fixed after scroll */
+    position: fixed;             /* Keep it fixed after scroll */
     top: 80px;                    /* Start the TOC below the header */
-    left: -50vw;                  /* Make the TOC move further to the left */
+    left: 0;                  /* Make the TOC move further to the left */
     width: 200px;                 /* Width of the TOC */
     background: #161b22;          /* Dark background to match theme */
     padding: 10px;
