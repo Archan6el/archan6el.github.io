@@ -80,15 +80,15 @@ tbody td {
 */
 
 #toc {
-    position: fixed;
+    position: sticky;
+    top: 20px; /* Adjust based on header height */
     left: 10px;
-    top: 100px !important; /* Force style */
     width: 200px;
-    background: #161b22 !important; /* Ensure it matches the theme */
+    background: #161b22;
     padding: 10px;
     border-radius: 5px;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-    color: var(--text-color) !important;
+    color: var(--text-color);
 }
 
 #toc ul {
