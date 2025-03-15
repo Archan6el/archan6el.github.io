@@ -87,16 +87,15 @@ tbody td {
 }
 
 #toc {
-    position: sticky;
-    top: 20px;
-    width: 200px;
+    position: fixed;
+    top: 20px; /* Adjust to control vertical positioning */
+    left: 0; /* Pushes it all the way to the left */
+    width: 200px; /* Adjust as needed */
     background: #161b22;
     padding: 10px;
     border-radius: 5px;
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
     color: var(--text-color);
-    margin-left: -350px; /* Move TOC farther left */
-    margin-right: 20px; /* Space between TOC and content */
 }
 
 #toc ul {
