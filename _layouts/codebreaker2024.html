@@ -4,6 +4,10 @@
     <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+     <!-- Include the default theme's CSS -->
+    <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
+    
+    <!-- Include your custom styles.css after the theme's CSS -->
     <link rel="stylesheet" href="{{ '/assets/css/styles.css' | relative_url }}">
     {% include head-custom.html %}
 
