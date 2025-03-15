@@ -1,7 +1,7 @@
 <link rel="stylesheet" href="{{ '/assets/css/styles.css' | relative_url }}">
 
-<div id="page-container">
-<aside id="toc">
+
+<div id="toc">
   <h2>Contents</h2>
   <ul>
     <li><a href="#background">Background</a></li>
@@ -12,7 +12,7 @@
     <li><a href="#task-4---llms-never-lie---programming-forensics">Task 4 - LLMs never lie - (Programming, Forensics)</a></li>
     <li><a href="#task-5---the-153---reverse-engineering-cryptography">Task 5 - The #153 - (Reverse Engineering, Cryptography)</a></li>
   </ul>
-</aside>
+</div>
 	
 ## Background:
 
@@ -2535,5 +2535,3 @@ Submitting this solves Task 5 for us, and we are now high performers!
 
 **Results:**
 >It worked! OMG that was some bad crypto.
-
-</div>
