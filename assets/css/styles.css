@@ -82,8 +82,8 @@ tbody td {
 #page-container {
     display: flex;
     align-items: flex-start; /* Align TOC and content at the top */
-    max-width: 1200px; /* Adjust width as needed */
-    margin: 0 auto; /* Center the layout */
+    max-width: none; /* Remove the width restriction */
+    margin: 0; /* Remove auto margin so TOC can move left */
 }
 
 #toc {
