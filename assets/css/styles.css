@@ -114,7 +114,7 @@ tbody td {
 }
 
 #toc a {
-  color: #ffffff;  /* Keep links white */
+  /* color: #ffffff;  Keep links white */
   text-decoration: none;
   font-size: 12px;  /* Reduce font size of the links */
 }
