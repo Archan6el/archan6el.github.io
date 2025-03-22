@@ -163,68 +163,70 @@ Now starting from this first file, we add it to our pool. We then follow the des
 Of course, I didn't want to do this by hand, so I made a bash script to do it. 
 
 <details>
-	<summary> Click to expand mount-logseq.sh </summary>
+<summary> Click to expand mount-logseq.sh </summary>
+
+<div markdown=1>
 	
-	```bash
-	#!/bin/bash
-	
-	# Function to extract GUID from a snapshot file
-	get_guid() {
-	    local file=$1
-	    # Extract the GUID from the snapshot file using file command and grep
-	    local guid=$(file "$file" | grep -oP '(?<=destination GUID: )[^\s]+')
-	    echo "$guid"
-	}
-	
-	# Function to extract the source GUID from a snapshot file
-	get_source_guid() {
-	    local file=$1
-	    # Extract the source GUID from the snapshot file using file command and grep
-	    local guid=$(file "$file" | grep -oP '(?<=source GUID: )[^\s]+')
-	    echo "$guid"
-	}
-	
-	# Function to add the snapshot file to the ZFS pool
-	add_to_pool() {
-	    local file=$1
-	    echo "Adding $file to pool"
-	    sudo zfs receive -F task2pool/ltfs < "$file"
-	}
-	
-	# Start with an initial file
-	current_file="logseq291502518216656"
-	
-	while [ -n "$current_file" ]; do
-	    echo "Processing file: $current_file"
-	    
-	    # Print the file name
-	    echo "File name: $current_file"
-	    
-	    # Add the current snapshot file to the pool
-	    add_to_pool "$current_file"
-	    
-	    # Get the destination GUID of the current file
-	    current_dest_guid=$(get_guid "$current_file")
-	    
-	    # Find the next file based on the source GUID
-	    next_file=$(for file in *-i; do
-	        # Check if the file contains the source GUID of the current file
-	        if [ "$(get_source_guid "$file")" == "$current_dest_guid" ]; then
-	            echo "$file"
-	            break
-	        fi
-	    done)
-	    
-	    # Check if we found a next file
-	    if [ -n "$next_file" ]; then
-	        current_file="$next_file"
-	    else
-	        echo "No next file found. Ending script."
-	        break
-	    fi
-	done
-	
-	```
+```bash
+#!/bin/bash
+
+# Function to extract GUID from a snapshot file
+get_guid() {
+    local file=$1
+    # Extract the GUID from the snapshot file using file command and grep
+    local guid=$(file "$file" | grep -oP '(?<=destination GUID: )[^\s]+')
+    echo "$guid"
+}
+
+# Function to extract the source GUID from a snapshot file
+get_source_guid() {
+    local file=$1
+    # Extract the source GUID from the snapshot file using file command and grep
+    local guid=$(file "$file" | grep -oP '(?<=source GUID: )[^\s]+')
+    echo "$guid"
+}
+
+# Function to add the snapshot file to the ZFS pool
+add_to_pool() {
+    local file=$1
+    echo "Adding $file to pool"
+    sudo zfs receive -F task2pool/ltfs < "$file"
+}
+
+# Start with an initial file
+current_file="logseq291502518216656"
+
+while [ -n "$current_file" ]; do
+    echo "Processing file: $current_file"
+    
+    # Print the file name
+    echo "File name: $current_file"
+    
+    # Add the current snapshot file to the pool
+    add_to_pool "$current_file"
+    
+    # Get the destination GUID of the current file
+    current_dest_guid=$(get_guid "$current_file")
+    
+    # Find the next file based on the source GUID
+    next_file=$(for file in *-i; do
+	# Check if the file contains the source GUID of the current file
+	if [ "$(get_source_guid "$file")" == "$current_dest_guid" ]; then
+	    echo "$file"
+	    break
+	fi
+    done)
+    
+    # Check if we found a next file
+    if [ -n "$next_file" ]; then
+	current_file="$next_file"
+    else
+	echo "No next file found. Ending script."
+	break
+    fi
+done
+```
+</div>
 
 </details>
 
