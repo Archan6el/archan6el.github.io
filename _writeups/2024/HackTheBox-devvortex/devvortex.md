@@ -1,3 +1,14 @@
+---
+layout: writeup
+category: HackTheBox-devvortex
+chall_description: 
+points: 
+solves: 
+tags: HackTheBox
+date: 2024-01-06
+comments: false
+---
+
 # Devvortex-Writeup
 A write-up of the Hack The Box devvortex machine for the TAMU Cybersecurity Club 
 

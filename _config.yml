@@ -1,14 +1,7 @@
-<<<<<<< HEAD
-title: Archan6el
-description: A blog about my writeups and notes.
-remote_theme: pages-themes/hacker@v0.2.0
-plugins:
-- jekyll-remote-theme
-=======
 remote_theme: CaptainIRS/hacker-plus-theme
 
-title:
-author:
+title: Archan6el
+author: Archan6el
 description: 
 disqus_forum_shortname:
 google_site_verification_content: # The 'content' tag for site verification
@@ -18,12 +11,12 @@ google_analytics: # Your Google Analytics Tracking ID
 htb_badge_no: # Go to the HackTheBox site and copy your ID
 thm_badge_no: # Go to https://tryhackme.com/profile -> Public Profile -> Get Badge ID
 show_thm_htb_badges_in_nav: false
-github_username: 
+github_username: Archan6el
 gitlab:
 medium:
 stackoverflow:
 hacker_news:
-linkedin:
+linkedin: michael-ace-bengil-83a535212/
 twitch:
 youtube:
 twitter: 
@@ -58,4 +51,3 @@ collections:
       output: true
    blog:
       output: true
->>>>>>> template/master
