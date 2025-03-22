@@ -163,7 +163,7 @@ Now starting from this first file, we add it to our pool. We then follow the des
 Of course, I didn't want to do this by hand, so I made a bash script to do it. 
 
 <details>
-<summary> Click to expand mount-logseq.sh </summary>
+<summary><i><ins>Click to expand mount-logseq.sh</ins></i></summary>
 
 <div markdown=1>
 	
@@ -257,7 +257,7 @@ We are adding the ZFS volumes incrementally, and then taking a look at the final
 I modify our bash script from earlier to essentially mount the filesystem after we add a new `logseq` file so that we can take a look at each step of the process. In other words, taking a snapshot of the filesystem at each step as we add each `logseq` file.
 
 <details>
-<summary>Click to expand incremental-mount-logseq.sh</summary>
+<summary><i><ins>Click to expand incremental-mount-logseq.sh</ins></i></summary>
 <div markdown=1>
 
 ```bash
@@ -455,7 +455,7 @@ The text refers to `auth_service/AuthService`. `auth_service` is likely our pack
 Now we have all we need, let's create our proto file. I name mine `ping.proto` since we're trying to get the ping function to work specifically, and set my `go_package` to `/seedGeneration`, since we saw some references to `seedGeneration` in those `main` functions we found earlier. The name of your proto file and `go_package` doesn't matter though. 
 
 <details>
-<summary> <b>Click to expand ping.proto</b> </summary>	
+<summary> <i><ins>Click to expand ping.proto</ins></i> </summary>	
 <div markdown=1>
 	
 ```
@@ -544,7 +544,7 @@ With our `.proto` file made, we run the `protoc` command to compile it into some
 Now let's create the auth server. In my code, I set up some sample checks for `AuthenticateRequest` and `VerifyOTP` just to see if they do anything. Most importantly, we run the server on port 50052. 
 
 <details>
-	<Summary><b>Click to expand auth_server.go</b></Summary>
+	<Summary><i><ins>Click to expand auth_server.go</ins></i></Summary>
 
 <div markdown=1>
 	
@@ -677,7 +677,7 @@ What's our `package` and `service` names this time though? `package` I'll just c
 Now we can make our `.proto` file! I named mine `seedGeneration.proto`
 
 <details>
-	<Summary><b>Click to expand seedGeneration.proto</b></Summary>
+	<Summary><i><ins>Click to expand seedGeneration.proto</ins></i></Summary>
 <div markdown=1>
 	
 ```
@@ -748,7 +748,7 @@ This is where the `shredded.jpg` image comes into play. I was thinking of what `
 Let's make the client now in Python. I make some code to call `StressTest` too but I comment it out for now. I mainly want to see what `GetSeed` does. 
 
 <details>
-<Summary><b>Click to expand client.py</b></Summary>
+<Summary><i><ins>Click to expand client.py</ins></i></Summary>
 <div markdown=1>
 	
 ```python
@@ -833,7 +833,7 @@ If we run our client and call `GetSeed`, we hit our breakpoint
 So username and password is passed into `auth`. Additionally, some kind of value, `c` is passed in as well to both `GetSeed` and `auth`. For our next step, let's see if we can rename some variables in the `auth` function on Ghidra to make it easier to read
 
 <details>
-<Summary><b>Click to expand main.(*SeedgenAuthClient).auth</b></Summary>
+<Summary><i><ins>Click to expand main.(*SeedgenAuthClient).auth</ins></i></Summary>
 <div markdown=1>
 	
 ```c
@@ -1037,7 +1037,7 @@ The function then XOR's the username chunk and whatever `uVar4` is. `uVar4` is c
 After our variable renaming, we now have this code. 
 
 <details>
-<Summary><b>Click to expand main.(*SeedgenAuthClient).auth</b></Summary>
+<Summary><i><ins>Click to expand main.(*SeedgenAuthClient).auth</ins></i></Summary>
 <div markdown=1>
 	
 ```c
@@ -1240,7 +1240,7 @@ It's `0x378f96687bfa0`
 We have everything we need, let's start making our solve. We will continuously generate numbers using the seeded random number generator, take it and the username `jasper_04044`, go through the XOR logic and loop that we discussed earlier, and check to see if the final result equals `0x7032f1e8`. We'll code the solve in Go since the `server` executable uses specifically Go's random number generator. 
 
 <details>
-	<Summary><b>Click to expand solve.go</b></Summary>
+	<Summary><i><ins>Click to expand solve.go</ins></i></Summary>
 <div markdown=1>
 	
  ```go
@@ -1358,7 +1358,7 @@ What does this mean for us? Even though `7571067976073007827` is the correct see
 I tweak the code to print the next seed after we pass the Xor logic
 
 <details>
-<Summary><b>Click to expand solve.go</b></Summary>
+<Summary><i><ins>Click to expand solve.go</ins></i></Summary>
 <div markdown=1>
 	
  ```go
@@ -1520,7 +1520,7 @@ We can send a simple get request, using the given `.crt` and `.key` file to make
 We can write a Python script to automate going through the audit log to find  `gagpt -m ...` lines, which we can use in our get request. I save our responses to a file named `queries_and_responses.txt` so that we can take a look at them once the script is done executing. 
 
 <details>
-	<Summary><b>Click to expand solve.py</b></Summary>
+	<Summary><i><ins>Click to expand solve.py</ins></i></Summary>
 <div markdown=1>
 	
 ```python
@@ -1619,7 +1619,7 @@ This means that we're missing out on a whole lot of responses!
 I modified our already existing script to now allow us to specify what the query is using the variable `cleaned_query`. This allows us to clean up a malformed query we find and to individually get its response. I save the responses to a file named `cleaned.txt`. 
 
 <details>
-	<Summary><b>Click to expand solve-specific.py</b></Summary>
+	<Summary><i><ins>Click to expand solve-specific.py</ins></i></Summary>
 <div markdown=1>
 	
 ```python
@@ -1786,7 +1786,7 @@ This gets us the following Python code for each file:
 
 <details>
 	
-<Summary><b>Click to expand pidgin_rsa_encryption.py</b></Summary>
+<Summary><i><ins>Click to expand pidgin_rsa_encryption.py</ins></i></Summary>
 <div markdown=1>
 	
 ```python
@@ -1924,7 +1924,7 @@ if __name__ == '__main__':
 
 
 <details>
-	<Summary><b>Click to expand pm.py</b></Summary>
+	<Summary><i><ins>Click to expand pm.py</ins></i></Summary>
 <div markdown=1>
 	
 ```python
@@ -2168,7 +2168,7 @@ Look at that, they all have a public exponent of 3! This means that we can indee
 We can write a Python script to do this. Using the knowledge of the padding used from `pidgin_rsa_encryption.py`, the public keys, and the base64 encoded messages, we end up with the following script
 
 <details>
-	<Summary><b>Click to expand hastads_broadcast_attack.py</b></Summary>
+	<Summary><i><ins>Click to expand hastads_broadcast_attack.py</ins></i></Summary>
 <div markdown=1>
 	
  ```python
@@ -2245,7 +2245,7 @@ With this in mind, we can go through all the passwords that are stored in the `.
 We can write a Python script to do this
 
 <details>
-	<Summary>Click to expand find_IV.py</Summary>
+	<Summary><i><ins>Click to expand find_IV.py</ins></i></Summary>
 <div markdown=1>
 	
 ```python
@@ -2301,7 +2301,7 @@ After further research, I find a straightforward way to exploit this vulnerabili
 Let's put this to the test shall we? Again, we can write a Python script to do this. We'll take the encrypted AWS password and its known plaintext and XOR them together. This in theory should get us the keystream. We can then XOR the keystream and the encrypted USB password to get the plaintext USB password. 
 
 <details>
-<Summary>Click to expand reverse_AES_CFB.py</Summary>
+<Summary><i><ins>Click to expand reverse_AES_CFB.py</ins></i></Summary>
 <div markdown=1>
 	
  ```python
@@ -2368,7 +2368,7 @@ I end up with this script and dummy USB password, and I find something very intr
 
 <details>
 
- <Summary>Click to expand testing.py</Summary>
+ <Summary><i><ins>Click to expand testing.py</ins></i></Summary>
 <div markdown=1>
 	
  ```python
@@ -2497,7 +2497,7 @@ We end up with this brute force script:
 
 <details>
 
- <Summary>Click to expand brute.py</Summary>
+ <Summary><i><ins>Click to expand brute.py</ins></i></Summary>
 <div markdown=1>
 	
  ```python
