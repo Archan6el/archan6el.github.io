@@ -165,9 +165,7 @@ Of course, I didn't want to do this by hand, so I made a bash script to do it.
 <details>
 
 <Summary> Click to expand mount-logseq.sh </Summary>
-{% raw %}
-
-```bash
+<pre><code class="language-bash">
 #!/bin/bash
 
 # Function to extract GUID from a snapshot file
@@ -225,8 +223,8 @@ while [ -n "$current_file" ]; do
         break
     fi
 done
-```
-{% endraw %} 
+</pre></code>
+
 </details>
 
 After running this bash script, we should have all files added to our pool. Running `zfs list`, we should see our mountpoint so that we know where to go to look at the final product. 
