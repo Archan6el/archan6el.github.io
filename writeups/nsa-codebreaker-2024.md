@@ -378,7 +378,7 @@ And submitting this gets us our second badge!
 
 >Great work finding those files! Barry shares the files you extracted with the blue team who share it back to Aaliyah and her team. As a first step, she ran strings across all the files found and noticed a reference to a known DIB, “Guardian Armaments” She begins connecting some dots and wonders if there is a connection between the software and the hardware tokens. But what is it used for and is there a viable threat to Guardian Armaments (GA)?
 >
->She knows the Malware Reverse Engineers are experts at taking software apart and figuring out what it's doing. Aaliyah reaches out to them and keeps you in the >loop. Looking at the email, you realize your friend Ceylan is touring on that team! She is on her first tour of the Computer Network Operations Development Program
+>She knows the Malware Reverse Engineers are experts at taking software apart and figuring out what it's doing. Aaliyah reaches out to them and keeps you in the loop. Looking at the email, you realize your friend Ceylan is touring on that team! She is on her first tour of the Computer Network Operations Development Program
 >
 >Barry opens up a group chat with three of you. He wants to see the outcome of the work you two have already contributed to. Ceylan shares her screen with you as she begins to reverse the software. You and Barry grab some coffee and knuckle down to help.
 >
@@ -447,8 +447,8 @@ The text refers to `auth_service/AuthService`. `auth_service` is likely our pack
 Now we have all we need, let's create our proto file. I name mine `ping.proto` since we're trying to get the ping function to work specifically, and set my `go_package` to `/seedGeneration`, since we saw some references to `seedGeneration` in those `main` functions we found earlier. The name of your proto file and `go_package` doesn't matter though. 
 
 <details>
-	<Summary> <b>Click to expand ping.proto</b> </Summary>
-{% raw %}
+<Summary> <b>Click to expand ping.proto</b> </Summary>
+
 	
 ```
 syntax = "proto3";
@@ -525,9 +525,9 @@ message VerifyOTPResponse {
     bool success = 1;
     int64 token = 2;
 }
-```
-{% endraw %}
+
 </details>
+```
 
 
 With our `.proto` file made, we run the `protoc` command to compile it into some Go files for us to use
