@@ -3,6 +3,7 @@ layout: writeup
 category: NSA-Codebreaker-2024
 points: 200
 solves: 95
+title: Task 3 - How Did They Get in?
 tags: ReverseEngineering rev VulnerabilityResearch
 date: 2025-03-22
 comments: false

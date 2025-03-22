@@ -6,7 +6,7 @@ layout: default
 
 > Thank you to [CaptainIRS](https://github.com/CaptainIRS) for this awesome [theme](https://github.com/CaptainIRS/hacker-plus-theme/tree/master)!
 
-Take a look at all my writeups [HERE](/writeups)
+Take a look at all my writeups [HERE](/writeups) (there's not much there yet😭)
 
 # Writeups
 

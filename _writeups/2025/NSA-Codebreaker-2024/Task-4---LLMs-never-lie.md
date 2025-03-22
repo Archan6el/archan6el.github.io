@@ -3,6 +3,7 @@ layout: writeup
 category: NSA-Codebreaker-2024
 points: 200
 solves: 78
+title: Task 4 - LLMs never lie
 tags: Programming Forensics
 date: 2025-03-22
 comments: false

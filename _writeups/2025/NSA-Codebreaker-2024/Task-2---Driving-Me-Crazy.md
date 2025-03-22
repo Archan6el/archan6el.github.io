@@ -3,6 +3,7 @@ layout: writeup
 category: NSA-Codebreaker-2024
 points: 30
 solves: 837
+title: Task 2 - Driving Me Crazy
 tags: Forensics DevOps
 date: 2025-03-22
 comments: false

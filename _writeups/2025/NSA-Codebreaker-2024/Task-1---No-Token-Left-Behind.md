@@ -3,6 +3,7 @@ layout: writeup
 category: NSA-Codebreaker-2024
 points: 9
 solves: 2357
+title: Task 1 - No Token Left Behind
 tags: FileForensics Forensics
 date: 2025-03-22
 comments: false

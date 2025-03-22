@@ -3,6 +3,7 @@ layout: writeup
 category: NSA-Codebreaker-2024
 points: 450
 solves: 63
+title: "Task 5 - The #153"
 tags: ReverseEngineering rev Cryptography crypto
 date: 2025-03-22
 comments: false
