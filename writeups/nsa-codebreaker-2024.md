@@ -526,9 +526,7 @@ message VerifyOTPResponse {
     int64 token = 2;
 }
 
-</details>
-```
-
+</details> ```
 
 With our `.proto` file made, we run the `protoc` command to compile it into some Go files for us to use
 
