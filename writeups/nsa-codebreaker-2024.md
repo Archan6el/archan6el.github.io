@@ -223,7 +223,8 @@ while [ -n "$current_file" ]; do
         break
     fi
 done
-</pre></code>
+
+</code></pre>
 
 </details>
 
