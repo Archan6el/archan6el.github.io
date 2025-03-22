@@ -256,6 +256,10 @@ We are adding the ZFS volumes incrementally, and then taking a look at the final
 
 I modify our bash script from earlier to essentially mount the filesystem after we add a new `logseq` file so that we can take a look at each step of the process. In other words, taking a snapshot of the filesystem at each step as we add each `logseq` file.
 
+<details>
+<summary>Click to expand incremental-mount-logseq.sh</summary>
+<div markdown=1>
+
 ```bash
 #!/bin/bash
 
@@ -338,6 +342,8 @@ for i in {1..20}; do
     done
 done
 ```
+</div>
+</details>
 
 In the script, I mounted everything in `/mnt/task2pool`. If we go there and run `ls`, we see 20 snapshot directories, which makes sense since there are 20 `logseq` files:
 
@@ -450,8 +456,9 @@ Now we have all we need, let's create our proto file. I name mine `ping.proto` s
 
 <details>
 <summary> <b>Click to expand ping.proto</b> </summary>	
+<div markdown=1>
 	
-<pre><code class="language-text">
+```
 syntax = "proto3";
 
 package auth_service;
@@ -526,7 +533,8 @@ message VerifyOTPResponse {
     bool success = 1;
     int64 token = 2;
 }
-</code></pre>
+```
+</div>
 </details>
 
 With our `.proto` file made, we run the `protoc` command to compile it into some Go files for us to use
@@ -537,6 +545,8 @@ Now let's create the auth server. In my code, I set up some sample checks for `A
 
 <details>
 	<Summary><b>Click to expand auth_server.go</b></Summary>
+
+<div markdown=1>
 	
 ```Go
 package main
@@ -636,6 +646,7 @@ func main() {
 	}
 }
 ```
+</div>
 </details>
 
 Let's run it with `go run auth_server.go`
@@ -667,6 +678,7 @@ Now we can make our `.proto` file! I named mine `seedGeneration.proto`
 
 <details>
 	<Summary><b>Click to expand seedGeneration.proto</b></Summary>
+<div markdown=1>
 	
 ```
 syntax = "proto3";
@@ -716,6 +728,7 @@ message GetPingResponse {
     int64 pong = 1;
 }
 ```
+</div>
 </details>
 
 Instead of Go, it turns out you can do `grpc` stuff in Python too. To save myself the Go setup headache, I made my client in Python. For Python, compile the proto file with
@@ -736,7 +749,8 @@ Let's make the client now in Python. I make some code to call `StressTest` too b
 
 <details>
 <Summary><b>Click to expand client.py</b></Summary>
-
+<div markdown=1>
+	
 ```python
 import grpc
 import seedGeneration_pb2
@@ -783,6 +797,7 @@ def run():
 if __name__ == "__main__":
     run()
 ```
+</div>
 </details>
 
 If we run this, we get a response!
@@ -819,7 +834,8 @@ So username and password is passed into `auth`. Additionally, some kind of value
 
 <details>
 <Summary><b>Click to expand main.(*SeedgenAuthClient).auth</b></Summary>
-
+<div markdown=1>
+	
 ```c
 long main.(*SeedgenAuthClient).auth
                (long param_1,undefined8 param_2,undefined8 param_3,ulong param_4,char *param_5,
@@ -963,6 +979,7 @@ long main.(*SeedgenAuthClient).auth
   } while( true );
 }
 ```
+</div>
 </details>
 
 Right off the bat, we can see that `uVar2` seems to be some kind of counter, since it starts at 0 and gets incremented by 4 each iteration. Let's rename it to `i`. 
@@ -1021,7 +1038,8 @@ After our variable renaming, we now have this code.
 
 <details>
 <Summary><b>Click to expand main.(*SeedgenAuthClient).auth</b></Summary>
-
+<div markdown=1>
+	
 ```c
 long main.(*SeedgenAuthClient).auth
                (long param_1,undefined8 param_2,undefined8 param_3,ulong param_4,char *param_5,
@@ -1164,6 +1182,7 @@ long main.(*SeedgenAuthClient).auth
   } while( true );
 }
 ```
+</div>
 </details>
 
 Let's look at what it's doing. It gets a little confusing since the function initially has the `seed` variable as the randomly generated seed, assigns it to `param_7[2]`, and then reuses it later as `seed = username_length - i;`. Regardless, we can get a good grasp of what's going on. 
@@ -1222,7 +1241,8 @@ We have everything we need, let's start making our solve. We will continuously g
 
 <details>
 	<Summary><b>Click to expand solve.go</b></Summary>
-
+<div markdown=1>
+	
  ```Go
 package main
 
@@ -1318,6 +1338,7 @@ func main() {
 }
 
 ```
+</div>
 </details>
 
 I print the first few attempts to see if the seed aligns with the count. We initialize `attempts` to -1 to align the counts and seeds the same way that the `server` executable does. 
@@ -1338,7 +1359,8 @@ I tweak the code to print the next seed after we pass the Xor logic
 
 <details>
 <Summary><b>Click to expand solve.go</b></Summary>
-
+<div markdown=1>
+	
  ```Go
 package main
 
@@ -1434,7 +1456,7 @@ func main() {
 	
 }
 ```
-
+</div>
 </details>
 
 This time we get the output:
@@ -1499,7 +1521,8 @@ We can write a Python script to automate going through the audit log to find  `g
 
 <details>
 	<Summary><b>Click to expand solve.py</b></Summary>
-
+<div markdown=1>
+	
 ```Python
 import re
 import requests
@@ -1576,6 +1599,7 @@ def main():
 if __name__ == '__main__':
     main()
 ```
+</div>
 </details>
 
 This gives us a very long file of JSON, which shows the LLM's responses to the different queries, with the below image being one such example response:
@@ -1596,6 +1620,7 @@ I modified our already existing script to now allow us to specify what the query
 
 <details>
 	<Summary><b>Click to expand solve-specific.py</b></Summary>
+<div markdown=1>
 	
 ```Python
 
@@ -1655,7 +1680,7 @@ def main():
 if __name__ == '__main__':
     main()
 ```
-
+</div>
 </details>
 
 Some of the queries obviously aren't code related. There's some revolving around a father asking for parenting advice for his daughter, someone asking about a pet python, and many other "non-serious" queries. I went through the audit log, specifically getting the responses for code related malformed queries, but still, there was nothing suspicious in the responses. 
@@ -1762,7 +1787,8 @@ This gets us the following Python code for each file:
 <details>
 	
 <Summary><b>Click to expand pidgin_rsa_encryption.py</b></Summary>
-
+<div markdown=1>
+	
 ```Python
 
 # Decompiled with PyLingual (https://pylingual.io)
@@ -1893,13 +1919,14 @@ def main():
 if __name__ == '__main__':
     main()
 ```
-
+</div>
 </details>
 
 
 <details>
 	<Summary><b>Click to expand pm.py</b></Summary>
-  
+<div markdown=1>
+	
 ```Python
 # Decompiled with PyLingual (https://pylingual.io)
 # Internal filename: pm.py
@@ -2041,6 +2068,7 @@ def main():
 if __name__ == '__main__':
     main()
 ```
+</div>
 </details>
 
 Taking a look at the `pm.py` file first, we can see that this corresponds to the `.passwords` directory. That weird hash directory indeed was a hash! The program stores passwords in a directory based on the md5 hash of the master password
@@ -2128,7 +2156,8 @@ We can write a Python script to do this. Using the knowledge of the padding used
 
 <details>
 	<Summary><b>Click to expand hastads_broadcast_attack.py</b></Summary>
-
+<div markdown=1>
+	
  ```Python
 
 from Crypto.PublicKey import RSA
@@ -2181,7 +2210,7 @@ if exact:
 else:
     print("Failed to compute the exact root.")
 ```
-
+</div>
 </details>
 
 Running this, we get the following result!
@@ -2204,6 +2233,7 @@ We can write a Python script to do this
 
 <details>
 	<Summary>Click to expand find_IV.py</Summary>
+<div markdown=1>
 	
 ```Python
 import os
@@ -2244,6 +2274,7 @@ for iv, files in iv_dict.items():
         for file in files:
             print(f"  - {file}")
 ```
+</div>
 </details>
 
 Running this gets us:
@@ -2258,7 +2289,8 @@ Let's put this to the test shall we? Again, we can write a Python script to do t
 
 <details>
 <Summary>Click to expand reverse_AES_CFB.py</Summary>
-
+<div markdown=1>
+	
  ```Python
 # Path to the ciphertext files
 C1_file_path = '/home/archangel/nsa-codebreaker-2024/task5/.passwords/3ead1101919a08e7d7f345e92b1c66da/AmazonWebServices'
@@ -2306,7 +2338,7 @@ elif len(P2) > 18:
 # Debug: Print final decrypted output
 print(f"Final Decrypted Output: {P2.decode('utf-8', errors='ignore')}")
 ```
-
+</div>
 </details>
 
 Running this gets us
@@ -2324,7 +2356,8 @@ I end up with this script and dummy USB password, and I find something very intr
 <details>
 
  <Summary>Click to expand testing.py</Summary>
-
+<div markdown=1>
+	
  ```Python
 
 import hashlib
@@ -2398,7 +2431,7 @@ print(f"Decrypted Message 2 (Hex): {decrypted_message2_hex}")
 decrypted_message2_int = int.from_bytes(decrypted_message2_raw, byteorder='big')
 print(f"Decrypted Message 2 (Integer): {decrypted_message2_int}")
 ```
-
+</div>
 </details>
 
 If we run this, we get this as our decrypted message:
@@ -2453,7 +2486,8 @@ We end up with this brute force script:
 <details>
 
  <Summary>Click to expand brute.py</Summary>
-
+<div markdown=1>
+	
  ```Python
 
 import pexpect
@@ -2517,6 +2551,7 @@ def try_passwords():
 try_passwords()
 print("No dice")
 ```
+</div>
 </details>
 
 Running this took a while. I just ran it and then went to watch the cfb playoffs as it was running. After coming back to check on the progress, we get this output:
