@@ -449,82 +449,82 @@ Now we have all we need, let's create our proto file. I name mine `ping.proto` s
 <details>
 	<Summary> <b>Click to expand ping.proto</b> </Summary>
 	
-```
-syntax = "proto3";
-
-package auth_service;
-
-option go_package = "/seedGeneration";
-
-service AuthService {
-    rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse);
-    rpc Logout(LogoutRequest) returns (LogoutResponse);
-    rpc Ping(PingRequest) returns (PingResponse);
-    rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
-    rpc RegisterOTPSeed(RegisterOTPSeedRequest) returns (RegisterOTPSeedResponse);
-    rpc VerifyOTP(VerifyOTPRequest) returns (VerifyOTPResponse);
-}
-
-message AuthenticateRequest {
-    // Define fields needed for authentication
-    string username = 1; // User's username
-    string password = 2; // User's password
-}
-
-message AuthenticateResponse {
-    // Define fields for the response
-    bool success = 1;        // Indicates if authentication was successful
-    string message = 2;      // Optional message for additional information
-}
-
-message LogoutRequest {
-    // Define fields needed for logout
-}
-
-message LogoutResponse {
-    // Define fields for the response
-}
-
-message PingRequest {
-    // Define fields needed for the request
-    int64 ping = 1;
-}
-
-message PingResponse {
-    int64 pong = 1;
-}
-
-message RefreshTokenRequest {
-    // Define fields needed for refresh token
-}
-
-message RefreshTokenResponse {
-    // Define fields for the response
-}
-
-message RegisterOTPSeedRequest {
-    // Define fields needed for OTP seed registration
-    string username = 1;
-    int64 seed = 2;
-}
-
-message RegisterOTPSeedResponse {
-    // Define fields for the response
-    bool success = 1;
-}
-
-message VerifyOTPRequest {
-    // Define fields needed for OTP verification
-    string username = 1;
-    int64 otp = 2;
-}
-
-message VerifyOTPResponse {
-    // Define fields for the response
-    bool success = 1;
-    int64 token = 2;
-}
-```
+	```
+	syntax = "proto3";
+	
+	package auth_service;
+	
+	option go_package = "/seedGeneration";
+	
+	service AuthService {
+	    rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse);
+	    rpc Logout(LogoutRequest) returns (LogoutResponse);
+	    rpc Ping(PingRequest) returns (PingResponse);
+	    rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+	    rpc RegisterOTPSeed(RegisterOTPSeedRequest) returns (RegisterOTPSeedResponse);
+	    rpc VerifyOTP(VerifyOTPRequest) returns (VerifyOTPResponse);
+	}
+	
+	message AuthenticateRequest {
+	    // Define fields needed for authentication
+	    string username = 1; // User's username
+	    string password = 2; // User's password
+	}
+	
+	message AuthenticateResponse {
+	    // Define fields for the response
+	    bool success = 1;        // Indicates if authentication was successful
+	    string message = 2;      // Optional message for additional information
+	}
+	
+	message LogoutRequest {
+	    // Define fields needed for logout
+	}
+	
+	message LogoutResponse {
+	    // Define fields for the response
+	}
+	
+	message PingRequest {
+	    // Define fields needed for the request
+	    int64 ping = 1;
+	}
+	
+	message PingResponse {
+	    int64 pong = 1;
+	}
+	
+	message RefreshTokenRequest {
+	    // Define fields needed for refresh token
+	}
+	
+	message RefreshTokenResponse {
+	    // Define fields for the response
+	}
+	
+	message RegisterOTPSeedRequest {
+	    // Define fields needed for OTP seed registration
+	    string username = 1;
+	    int64 seed = 2;
+	}
+	
+	message RegisterOTPSeedResponse {
+	    // Define fields for the response
+	    bool success = 1;
+	}
+	
+	message VerifyOTPRequest {
+	    // Define fields needed for OTP verification
+	    string username = 1;
+	    int64 otp = 2;
+	}
+	
+	message VerifyOTPResponse {
+	    // Define fields for the response
+	    bool success = 1;
+	    int64 token = 2;
+	}
+	```
 </details>
 
 
