@@ -447,8 +447,7 @@ The text refers to `auth_service/AuthService`. `auth_service` is likely our pack
 Now we have all we need, let's create our proto file. I name mine `ping.proto` since we're trying to get the ping function to work specifically, and set my `go_package` to `/seedGeneration`, since we saw some references to `seedGeneration` in those `main` functions we found earlier. The name of your proto file and `go_package` doesn't matter though. 
 
 <details>
-<Summary> <b>Click to expand ping.proto</b> </Summary>
-
+<summary> <b>Click to expand ping.proto</b> </summary>	
 	
 ```
 syntax = "proto3";
@@ -525,8 +524,8 @@ message VerifyOTPResponse {
     bool success = 1;
     int64 token = 2;
 }
-
-</details> ```
+```
+</details>
 
 With our `.proto` file made, we run the `protoc` command to compile it into some Go files for us to use
 
