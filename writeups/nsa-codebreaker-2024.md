@@ -548,7 +548,7 @@ Now let's create the auth server. In my code, I set up some sample checks for `A
 
 <div markdown=1>
 	
-```Go
+```go
 package main
 
 import (
@@ -1243,7 +1243,7 @@ We have everything we need, let's start making our solve. We will continuously g
 	<Summary><b>Click to expand solve.go</b></Summary>
 <div markdown=1>
 	
- ```Go
+ ```go
 package main
 
 import (
@@ -1361,7 +1361,7 @@ I tweak the code to print the next seed after we pass the Xor logic
 <Summary><b>Click to expand solve.go</b></Summary>
 <div markdown=1>
 	
- ```Go
+ ```go
 package main
 
 import (
@@ -1523,7 +1523,7 @@ We can write a Python script to automate going through the audit log to find  `g
 	<Summary><b>Click to expand solve.py</b></Summary>
 <div markdown=1>
 	
-```Python
+```python
 import re
 import requests
 import urllib.parse
@@ -1622,7 +1622,7 @@ I modified our already existing script to now allow us to specify what the query
 	<Summary><b>Click to expand solve-specific.py</b></Summary>
 <div markdown=1>
 	
-```Python
+```python
 
 import requests
 import urllib.parse
@@ -1789,7 +1789,7 @@ This gets us the following Python code for each file:
 <Summary><b>Click to expand pidgin_rsa_encryption.py</b></Summary>
 <div markdown=1>
 	
-```Python
+```python
 
 # Decompiled with PyLingual (https://pylingual.io)
 # Internal filename: pidgin_rsa_encryption.py
@@ -1927,7 +1927,7 @@ if __name__ == '__main__':
 	<Summary><b>Click to expand pm.py</b></Summary>
 <div markdown=1>
 	
-```Python
+```python
 # Decompiled with PyLingual (https://pylingual.io)
 # Internal filename: pm.py
 # Bytecode version: 3.11a7e (3495)
@@ -2158,7 +2158,7 @@ We can write a Python script to do this. Using the knowledge of the padding used
 	<Summary><b>Click to expand hastads_broadcast_attack.py</b></Summary>
 <div markdown=1>
 	
- ```Python
+ ```python
 
 from Crypto.PublicKey import RSA
 from math import gcd
@@ -2235,7 +2235,7 @@ We can write a Python script to do this
 	<Summary>Click to expand find_IV.py</Summary>
 <div markdown=1>
 	
-```Python
+```python
 import os
 
 # Path to the directory containing the encrypted password files
@@ -2291,7 +2291,7 @@ Let's put this to the test shall we? Again, we can write a Python script to do t
 <Summary>Click to expand reverse_AES_CFB.py</Summary>
 <div markdown=1>
 	
- ```Python
+ ```python
 # Path to the ciphertext files
 C1_file_path = '/home/archangel/nsa-codebreaker-2024/task5/.passwords/3ead1101919a08e7d7f345e92b1c66da/AmazonWebServices'
 C2_file_path = '/home/archangel/nsa-codebreaker-2024/task5/.passwords/3ead1101919a08e7d7f345e92b1c66da/USB-128'
@@ -2358,8 +2358,7 @@ I end up with this script and dummy USB password, and I find something very intr
  <Summary>Click to expand testing.py</Summary>
 <div markdown=1>
 	
- ```Python
-
+ ```python
 import hashlib
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -2488,8 +2487,7 @@ We end up with this brute force script:
  <Summary>Click to expand brute.py</Summary>
 <div markdown=1>
 	
- ```Python
-
+ ```python
 import pexpect
 import time
 import string
