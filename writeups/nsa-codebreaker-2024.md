@@ -450,7 +450,7 @@ Now we have all we need, let's create our proto file. I name mine `ping.proto` s
 <details>
 <summary> <b>Click to expand ping.proto</b> </summary>	
 	
-```
+<pre><code class="language-text">
 syntax = "proto3";
 
 package auth_service;
@@ -525,7 +525,7 @@ message VerifyOTPResponse {
     bool success = 1;
     int64 token = 2;
 }
-```
+</code></pre>
 </details>
 
 With our `.proto` file made, we run the `protoc` command to compile it into some Go files for us to use
