@@ -163,9 +163,9 @@ Now starting from this first file, we add it to our pool. We then follow the des
 Of course, I didn't want to do this by hand, so I made a bash script to do it. 
 
 <details>
+<summary> Click to expand mount-logseq.sh </summary>
 
-<Summary> Click to expand mount-logseq.sh </Summary>
-<pre><code class="language-bash">
+'''bash
 #!/bin/bash
 
 # Function to extract GUID from a snapshot file
@@ -223,8 +223,7 @@ while [ -n "$current_file" ]; do
         break
     fi
 done
-
-</code></pre>
+'''
 
 </details>
 
