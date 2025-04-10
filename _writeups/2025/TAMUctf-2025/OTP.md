@@ -139,7 +139,7 @@ Now that we have a pretty good grasp of what's going on, we just need to go thro
 <div markdown=1>
   
 ```text
-  # extract_keys.gdb
+# extract_keys.gdb
 
 # Set the frame number you want to start from
 set $frame = 1003
