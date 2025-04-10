@@ -2,7 +2,7 @@
 layout: default
 ---
 
-<h1>CTF Writeups</h1>
+<h1>CTF / HTB Writeups</h1>
 
 {% assign postsByYear = site.writeups | group_by_exp:"post", "post.date | date: '%Y'" %}
 
