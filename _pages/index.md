@@ -14,7 +14,7 @@ Take a look at all my writeups [HERE](/writeups) (there's not much there yet😭
     <li>
         <h2><a href="/writeups/2025/TAMUctf-2025/">TAMUctf 2025</a></h2>
         <time>April 2025</time>
-        <p>Writeups of the challenges I worked on during TAMUctf 2025, which were mainly the Reverse Engineering ones</p>
+        <p>Writeups of some of the challenges I worked on during TAMUctf 2025, which were mainly the Reverse Engineering ones</p>
     </li>
 
     <li>
