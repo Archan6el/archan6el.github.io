@@ -87,7 +87,7 @@ Now we have all we need, let's create our proto file. I name mine `ping.proto` s
 	<Summary> <i><ins>Click to expand ping.proto</ins></i> </Summary>
 <div markdown=1>
 
-```
+```text
 syntax = "proto3";
 
 package auth_service;
@@ -310,7 +310,7 @@ Now we can make our `.proto` file! I named mine `seedGeneration.proto`
 	<Summary><i><ins>Click to expand seedGeneration.proto</ins></i></Summary>
 <div markdown=1>
 
-```
+```text
 syntax = "proto3";
 
 package seed_generation; 
