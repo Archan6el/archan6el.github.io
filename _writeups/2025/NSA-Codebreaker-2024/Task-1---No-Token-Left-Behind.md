@@ -5,7 +5,7 @@ points: 9
 solves: 2357
 title: Task 1 - No Token Left Behind
 tags: FileForensics Forensics
-date: 2025-03-22
+date: 2025-01-25
 comments: false
 ---
 

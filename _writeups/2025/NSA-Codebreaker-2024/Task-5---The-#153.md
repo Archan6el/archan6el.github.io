@@ -5,7 +5,7 @@ points: 450
 solves: 63
 title: "Task 5 - The #153"
 tags: ReverseEngineering rev Cryptography crypto
-date: 2025-03-22
+date: 2025-01-25
 comments: false
 ---
 

@@ -5,7 +5,7 @@ points: 200
 solves: 95
 title: Task 3 - How Did They Get in?
 tags: ReverseEngineering rev VulnerabilityResearch
-date: 2025-03-22
+date: 2025-01-25
 comments: false
 ---
 
