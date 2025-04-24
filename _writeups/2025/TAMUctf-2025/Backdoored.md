@@ -376,7 +376,7 @@ void base64_encode(byte *param_1,int param_2,char *param_3)
 There's some sort of conditional check here that sets `checker` to true:
 ![image](https://github.com/user-attachments/assets/21aecc81-49f9-4408-895f-ad532f2b954e)
 
-Analyzing the rest of the function, it seems that what this check is doing is checking to see if the inputted text to the function is 8 bytes long. If it is, it base64 encodes the inputted text, and XOR's the two together. If it equals `0x51e02052f115e3b`, `checker` is set to true. 
+Analyzing the rest of the function, it seems that what this check is doing is checking to see if the inputted text to the function is 8 bytes long. If it is, it base64 encodes the inputted text, and XOR's the input and the first 8 bytes of its base64 encoded version together. If it equals `0x51e02052f115e3b`, `checker` is set to true. 
 
 We can write a pretty simple Python script to actually brute force byte by byte what this inputted text needs to be:
 
