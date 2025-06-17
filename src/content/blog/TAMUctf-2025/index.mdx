@@ -351,7 +351,7 @@ Analyzing the rest of the function, it seems that what this check is doing is ch
 
 We can write a pretty simple Python script to actually brute force byte by byte what this inputted text needs to be:
 
-```Python  
+```python  
 # Basically brute forcing the logic we found in the b64encode function in Ghidra
 # if ((*__src ^ *(ulong *)(local_70 + -0xc)) == 0x51e02052f115e3b)
 

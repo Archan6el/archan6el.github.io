@@ -39,6 +39,10 @@ export const SOCIAL_LINKS: SocialLink[] = [
     href: 'mailto:myk0675@gmail.com',
     label: 'Email',
   },
+  {
+    href: 'https://www.linkedin.com/in/michael-ace-bengil-83a535212/',
+    label: 'LinkedIn',
+  },
   /*{
     href: '/rss.xml',
     label: 'RSS',

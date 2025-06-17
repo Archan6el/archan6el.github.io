@@ -202,7 +202,7 @@ export async function parseAuthors(authorIds: string[] = []) {
     return {
       id,
       name: author?.data?.name || id,
-      avatar: author?.data?.avatar || '/static/logo.png',
+      avatar: author?.data?.avatar || '/static/archan6el_pfp.jpg',
       isRegistered: !!author,
     }
   })
