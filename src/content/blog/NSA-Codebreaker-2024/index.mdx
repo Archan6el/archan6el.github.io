@@ -1,0 +1,2463 @@
+---
+title: 'NSA Codebreaker 2024 Writeup'
+description: 'Writeups of the challenges I completed as part of NSA Codebreaker 2024, in which I reached High Performer'
+date: 2025-01-26
+tags: ['Reverse Engineering', 'Cryptography', 'Vulnerability Research', 'Forensics']
+authors: ['Archan6el']
+---
+
+**Background:**
+
+>Foreign adversaries have long strived to gain an advantage against the might of the United States Armed Forces. While matching the USA on the battlefield is a costly and risky proposition, our adversaries are always looking for ways to balance the playing field. A serious and real threat is the infiltration and sabotage of military operations before the fight even breaks out.
+>
+>Fortunately, the NSA is always recruiting bright young individuals to help protect our country! In fact, a bunch of your friends graduated last year and have been busy at work in their Developmental Programs.
+>
+>You have returned to NSA on your final Cooperative Education tour and are visiting your friend Aaliyah who is currently employed full-time in the Intelligence Analysis Development Program. Intelligence Analysts are always scouring through collected Signals Intelligence (SIGINT) for threat indicators. Aaliyah recently attended a briefing that highlighted Nation-State Advanced Persistent Threats (APT) targeting our Defense Industrial Base (DIB) contractors.
+
+
+## Task 0 - (Community of Practice, Discord Server)
+
+**Prompt 0:**
+
+>As a participant in the Codebreaker Challenge, you are invited to join the New Mexico Tech Codebreaker Challenge Community of Practice!
+>This is the 3rd year that NMT has partnered with the NSA Codebreaker Challenge. Its purpose remains to give students interested in cybersecurity
+>a place to talk about Codebreaker, cybersecurity, and other related topics.
+>
+>To complete this task, first, join the Discord server. https://discord.gg/SWYCM5xr4N
+>
+>Once there, type /task0 in the #bot-commands channel. Follow the prompts and paste the answer the bot gives you below.
+
+### Solve
+
+Just join the CBC Discord and follow the steps ¯\\_(ツ)_/¯
+
+**Response:**
+>Welcome to the community! Remember, challenge tasks must be done solo and NO SPOILERS! Use 'Get Help' for a direct line to NSA.
+
+## Task 1 - No Token Left Behind - (File Forensics)
+
+**Prompt 1:**
+
+
+>Aaliyah is showing you how Intelligence Analysts work. She pulls up a piece of intelligence she thought was interesting. It
+>shows that APTs are interested in acquiring hardware tokens used for accessing DIB networks. Those are generally controlled items,
+>how could the APT get a hold of one of those?
+>
+>DoD sometimes sends copies of procurement records for controlled items to the NSA for analysis. Aaliyah pulls up the records but realizes
+>it’s in a file format she’s not familiar with. Can you help her look for anything suspicious?
+>
+>If DIB companies are being actively targeted by an adversary the NSA needs to know about it so they can help mitigate the threat.
+>
+>Help Aaliyah determine the outlying activity in the dataset given
+>
+>Downloads:
+>
+>DoD procurement records (shipping.db)
+>
+>Prompt:
+>
+>Provide the order id associated with the order most likely to be fraudulent.
+
+### Solve
+
+Okay so now we're actually getting into the actual challenges. We need to find the order ID associated with the fraudulent order for this one. After downloading `shipping.db`, despite the `.db` extension, running `file` on it reveals that it is a Zip file. Let's unzip it and see what we get. 
+
+![image](https://github.com/user-attachments/assets/92c33ad0-5226-4ad3-b326-d2a3c8a5f2ee)
+
+We get a ton of files, most of which are unimportant:
+
+![image](https://github.com/user-attachments/assets/f48b6011-a501-4c99-ba98-f0c7d3433bf2)
+
+`content.xml` is what seems to actually contain the data, the issue is just visualizing it. Thankfully, just popping it into Microsoft Excel (sorry pure Linux users) does the trick. 
+
+![image](https://github.com/user-attachments/assets/92056065-5819-4621-8ec0-9ffdd73d5789)
+
+The spreadsheet is gigantic, with 11,550 rows. No way are we going through each row one by one. 
+
+Briefly scrolling through the spreadsheet, there's a lot of things that are repeated, specifically emails and addresses. I figured that anything malicious would probably only show up once, so using the `UNIQUE` function in Excel, I isolated all unique entries and put them in their own column. Starting from the bottom upwards, most of the entries are order IDs, which make sense since they should be unique. However, the first odd entry when going from the bottom up is an address, `058 Flowers Square Apt. 948, Port Ryanshire, NE 05823`:
+
+![image](https://github.com/user-attachments/assets/b8bee599-c93d-4f70-be84-7218605ff687)
+
+It is associated with "Guardian Armaments", and is part of an entry that has an order ID of `GUA0094608`
+
+![image](https://github.com/user-attachments/assets/2442407c-9849-4689-ab67-105890b04f90)
+
+And when looking at all other Guardian Armaments entires, they use a different address, `0050 Fred Plaza Suite...`, with the below image being a small example
+
+![image](https://github.com/user-attachments/assets/990e3852-c2f4-46b4-9e61-09f629b7b70f)
+
+`058 Flowers Square Apt. 948, Port Ryanshire, NE 05823` is the only different address used by Guardian Armaments, meaning that it is likely fraudulent, and we are right!
+
+Submitting its Order ID, `GUA0094608`, gets us our first badge
+
+**Response:**
+>Great Work! That order does look fishy...
+
+## Task 2 - Driving Me Crazy - (Forensics, DevOps)
+
+**Prompt 2:**
+
+>Having contacted the NSA liaison at the FBI, you learn that a facility at this address is already on a FBI watchlist for suspected criminal activity.
+>With this tip, the FBI acquires a warrant and raids the location.
+>
+>Inside they find the empty boxes of programmable OTP tokens, but the location appears to be abandoned. We're concerned about what this APT is up to! These hardware tokens are used to secure networks used by Defense Industrial Base companies that produce critical military hardware.
+>
+>The FBI sends the NSA a cache of other equipment found at the site. It is quickly assigned to an NSA forensics team. Your friend Barry enrolled in the Intrusion Analyst Skill Development Program and is touring with that team, so you message him to get the scoop. Barry tells you that a bunch of hard drives came back with the equipment, but most appear to be securely wiped. He managed to find a drive containing what might be some backups that they forgot to destroy, though he doesn't immediately recognize the data. Eager to help, you ask him to send you a zip containing a copy of the supposed backup files so that you can take a look at it.
+>
+>If we could recover files from the drives, it might tell us what the APT is up to. Provide a list of unique SHA256 hashes of all files you were able to find from the backups.
+>
+>Downloads:
+>
+>disk backups (archive.tar.bz2)
+>
+>Prompt:
+>
+>Provide your list of SHA256 hashes
+
+### Solve
+
+We need to provide a list of all unique SHA256 hashes that we can find from the compressed disk backup we are given. 
+
+First of all, let's run `tar -xvf` on the archive and see what we get
+
+![image](https://github.com/user-attachments/assets/8238973b-17d9-4248-af7b-227e53e31eb5)
+
+A whole bunch of these `logseq` files. 
+
+After running the `file` command on one of them, we see that they are part of a ZFS snapshot. 
+
+![image](https://github.com/user-attachments/assets/7dedd90d-0032-4933-9e6e-525947bc2cf4)
+
+>Note for my fellow WSL2 users, zfs seemingly doesn't work on WSL2. In order to solve this challenge, I used a Kali virtualbox VM
+
+After doing some googling on ZFS, I learn that all of these `logseq` files are essentially parts of the data on the drive, we just need to find a way to put them all together and mount or access the final result. 
+
+After doing some research on how we can access the data in the broken up drive, I found that you have to create a ZFS Pool and use an empty file to act as a virtual disk image. 
+
+First of all, the empty file. I used the `truncate` command to make a temporary file for this challenge, and placed it in my `tmp` directory:
+
+`sudo truncate -s 10G /tmp/task2`
+
+Now that we have the empty file, we can create our pool using it. I named my pool `task2pool`:
+
+`sudo zpool create task2pool /tmp/task2`
+
+OK we have our pool created and ready to go. So now how do we go about putting these `logseq` files together?
+
+After some more research, I found that we can add the files to our pool using the following command:
+
+`sudo zfs receive -F task2pool/ltfs < logseq_file`
+
+But there's one issue. We have to add / recieve them in order, `logseq` files are incremental. 
+
+How are we supposed to know which goes first? Well, looking back at when we ran `file` on one of the `logseq` files, we find two interesting things. 
+
+![image](https://github.com/user-attachments/assets/8710e057-96e6-4732-b552-a9e968b0e4fa)
+
+Each file has a destination and source GUID. This is what allows us to discern their order. We just have to find the first `logseq` file, which I assumed to be the one that didn't have a source GUID. 
+
+That file ends up being `logseq291502518216656`, which is also the only `logseq` file that doesn't end in `-i`, which is a pretty telltale sign that it's likely the first one. 
+
+![image](https://github.com/user-attachments/assets/f9091675-d7eb-492b-93d5-b87dc02a770b)
+
+Now starting from this first file, we add it to our pool. We then follow the destination GUID to the next `logseq` file, and add that to our pool, and continue until we've added all files. 
+
+Of course, I didn't want to do this by hand, so I made a bash script to do it. 
+
+```bash
+#!/bin/bash
+
+# Function to extract GUID from a snapshot file
+get_guid() {
+    local file=$1
+    # Extract the GUID from the snapshot file using file command and grep
+    local guid=$(file "$file" | grep -oP '(?<=destination GUID: )[^\s]+')
+    echo "$guid"
+}
+
+# Function to extract the source GUID from a snapshot file
+get_source_guid() {
+    local file=$1
+    # Extract the source GUID from the snapshot file using file command and grep
+    local guid=$(file "$file" | grep -oP '(?<=source GUID: )[^\s]+')
+    echo "$guid"
+}
+
+# Function to add the snapshot file to the ZFS pool
+add_to_pool() {
+    local file=$1
+    echo "Adding $file to pool"
+    sudo zfs receive -F task2pool/ltfs < "$file"
+}
+
+# Start with an initial file
+current_file="logseq291502518216656"
+
+while [ -n "$current_file" ]; do
+    echo "Processing file: $current_file"
+    
+    # Print the file name
+    echo "File name: $current_file"
+    
+    # Add the current snapshot file to the pool
+    add_to_pool "$current_file"
+    
+    # Get the destination GUID of the current file
+    current_dest_guid=$(get_guid "$current_file")
+    
+    # Find the next file based on the source GUID
+    next_file=$(for file in *-i; do
+        # Check if the file contains the source GUID of the current file
+        if [ "$(get_source_guid "$file")" == "$current_dest_guid" ]; then
+            echo "$file"
+            break
+        fi
+    done)
+    
+    # Check if we found a next file
+    if [ -n "$next_file" ]; then
+        current_file="$next_file"
+    else
+        echo "No next file found. Ending script."
+        break
+    fi
+done
+```
+
+<br></br>
+
+After running this bash script, we should have all files added to our pool. Running `zfs list`, we should see our mountpoint so that we know where to go to look at the final product. 
+
+![image](https://github.com/user-attachments/assets/5d0c0712-6783-4777-bc34-92e5c94f0add)
+
+So `/task2pool/ltfs` is where our data is. If we `cd` there, we find a `planning` directory, and within that, a `logseq` and `pages` directory. 
+
+![image](https://github.com/user-attachments/assets/7494b3f4-ad2b-4660-9de4-457b7a364bc4)
+
+Running `find . -type f -exec sha256sum {} + | awk '{print $1}' | sort | uniq` gets us a list of all the hashes here.
+
+![image](https://github.com/user-attachments/assets/ace902f4-ed2c-4ded-8bae-29aff2251d21)
+
+Challenge complete right? 
+
+Wrong. It's not going to be that easy. 
+
+Submitting the hashes of these files was *not* the answer. I actually got stuck for a little bit here thinking I had the solution, and didn't know where I was going wrong. I have the hashes of the files that are in the disk backup, which is seemingly all we need. What more could you want?
+
+It wasn't until after I carefully re-read the prompt that I realized what exactly they were asking for. 
+
+***All*** SHA256 hashes that we can extract. 
+
+We are adding the ZFS volumes incrementally, and then taking a look at the final result. What if along the way, midway through putting the ZFS volumes together, we have access to different files, or at the very least, files that have different hashes? 
+
+I modify our bash script from earlier to essentially mount the filesystem after we add a new `logseq` file so that we can take a look at each step of the process. In other words, taking a snapshot of the filesystem at each step as we add each `logseq` file.
+
+```bash
+#!/bin/bash
+
+# Function to extract GUID from a snapshot file
+get_guid() {
+    local file=$1
+    # Extract the GUID from the snapshot file using file command and grep
+    local guid=$(file "$file" | grep -oP '(?<=destination GUID: )[^\s]+')
+    echo "$guid"
+}
+
+# Function to extract the source GUID from a snapshot file
+get_source_guid() {
+    local file=$1
+    # Extract the source GUID from the snapshot file using file command and grep
+    local guid=$(file "$file" | grep -oP '(?<=source GUID: )[^\s]+')
+    echo "$guid"
+}
+
+# Function to add the snapshot file to the ZFS pool
+add_to_pool() {
+    local file=$1
+    local filesystem_name=$2
+    echo "Adding $file to pool task2pool as $filesystem_name"
+    
+    # Receive the snapshot into the pool as a new filesystem
+    sudo zfs receive -F task2pool/$filesystem_name < "$file"
+    
+    # Set a mount point for the new filesystem
+    local mount_dir="/mnt/task2pool/$filesystem_name"
+    sudo zfs set mountpoint=$mount_dir task2pool/$filesystem_name
+    
+    # Mount the new filesystem
+    sudo zfs mount task2pool/$filesystem_name
+}
+
+# Start with an initial file
+initial_file="logseq291502518216656"
+
+# Outer loop to handle multiple files. Loop from 1 to 20 since there are 20 logseq files
+for i in {1..20}; do
+    # Initialize current_file for this iteration of outer loop
+    current_file="$initial_file"
+    count=0  # Reset the counter for each outer loop iteration
+
+    while [ -n "$current_file" ]; do
+        if [ $count -eq $i ]; then
+            break
+        fi
+
+        echo "Processing file: $current_file"
+    
+        # Print the file name
+        echo "File name: $current_file"
+    
+        # Add the current snapshot file to the pool as a new filesystem
+        add_to_pool "$current_file" "snapshot_$i"
+    
+        # Get the destination GUID of the current file
+        current_dest_guid=$(get_guid "$current_file")
+    
+        # Find the next file based on the source GUID
+        next_file=$(for file in *-i; do
+            # Check if the file contains the source GUID of the current file
+            if [ "$(get_source_guid "$file")" == "$current_dest_guid" ]; then
+                echo "$file"
+                break
+            fi
+        done)
+    
+        # Check if we found a next file
+        if [ -n "$next_file" ]; then
+            current_file="$next_file"
+        else
+            echo "No next file found. Ending script."
+            break
+        fi
+        
+        ((count++))  # Increment the counter
+    done
+done
+```
+<br></br>
+
+In the script, I mounted everything in `/mnt/task2pool`. If we go there and run `ls`, we see 20 snapshot directories, which makes sense since there are 20 `logseq` files:
+
+![image](https://github.com/user-attachments/assets/228fe1bf-d9f6-412d-aae6-e6a79fcaf53f)
+
+And sure enough if we run `ls -lR` (this being a small snippet of the output)...
+
+![image](https://github.com/user-attachments/assets/261a16f3-d37e-4c2f-a926-1402b0405538)
+
+At nearly each step of the process, each snapshot has its own set of files, which may very well have their own hashes.
+
+Running `find . -type f -exec sha256sum {} + | awk '{print $1}' | sort | uniq` will print them all to the console for us, resulting in a pretty long output of SHA256 hashes. Waaaay longer than what we had before:
+
+```
+00d0d281c60c8abc7a78dea8be550b838555651f1c84b9629eb972ab373178b1
+0409752c2490cbc8dd02208990d1cf54a619095766ebb5c28aa9af9f2c2d7cff
+0691ef7bdda133ccfe7121ebd7cc470e76cbfed92f3ba6d7beef395b2618b1b7
+0b7f06a779afd2c408b3949bd37827d7280710fdbecb68b19c79ae98d004db88
+0b833f977a126d35858a16ab6df8dd09855e9669f9f24ff2348e44d861a17d59
+0b88abca1862864b9b7686d2a065ffd07ef9572a72ae31caefb0636ccbb31f97
+0e24142e652d5bc6b3d958756d5e5025fb6e9aef48fa1e9dbddfddc3fe7cdde7
+106dc2f1806f113a860d270ff0203a9f65fdc6d4a5f0b9d8bf661b0cb07f28fb
+1607fe4cef2704de242f18b020b3967887ed0b0e427619ffdb96da35e9e28010
+165ffb243fda5f25c78c87aeca8d6b867e94240f027856273f9e9927dda5571e
+...
+...
+Over 100 hashes
+...
+...
+```
+
+And submitting this gets us our second badge!
+
+**Results:**
+>That is correct!
+
+## Task 3 - How did they get in? - (Reverse Engineering, Vulnerability Research)
+
+**Prompt 3:**
+
+>Great work finding those files! Barry shares the files you extracted with the blue team who share it back to Aaliyah and her team. As a first step, she ran strings across all the files found and noticed a reference to a known DIB, “Guardian Armaments” She begins connecting some dots and wonders if there is a connection between the software and the hardware tokens. But what is it used for and is there a viable threat to Guardian Armaments (GA)?
+>
+>She knows the Malware Reverse Engineers are experts at taking software apart and figuring out what it's doing. Aaliyah reaches out to them and keeps you in the loop. Looking at the email, you realize your friend Ceylan is touring on that team! She is on her first tour of the Computer Network Operations Development Program
+>
+>Barry opens up a group chat with three of you. He wants to see the outcome of the work you two have already contributed to. Ceylan shares her screen with you as she begins to reverse the software. You and Barry grab some coffee and knuckle down to help.
+>
+>Figure out how the APT would use this software to their benefit
+>
+>
+>Downloads:
+>
+>Executable from ZFS filesystem (server)
+>
+>Retrieved from the facility, could be important? (shredded.jpg)
+>
+>Prompt:
+>
+>Enter a valid JSON that contains the (3 interesting) keys and specific values that would have been logged if you had successfully leveraged the running software. Do ALL your work in lower case.
+
+### Solve
+Here we go, Task 3. We're finally getting to some actual rev. 
+
+First off, let's download the `server` executable and the `shredded.jpg` image. Opening up the image first, we are met with this:
+
+![image](https://github.com/user-attachments/assets/91396a8d-7f82-4a49-a136-312f737a121d)
+
+Seems to be something written on shredded paper, which was crudely put back together. It looks like it reads `JASPER_0`, or it could be `JASPER_O`. We'll keep note of it for now, and move on to the `server` executable. 
+
+Trying to run it gives us some interesting information. 
+
+![image](https://github.com/user-attachments/assets/36f4ab79-433a-451d-954e-e403260869e8)
+
+We learn two key things from this. First, the `server` executable seems to be using something called `rpc`, which we can deduce from the `rpc error` message. Second, the executable needs to be able to ping some kind of auth service in order to work. 
+
+After doing some research, we find that `rpc` is a protocol used to call remote functions. So the `server` executable is probably trying to call some kind of ping function from an auth server. Let's pop `server` into Ghidra and Binja and see what we find. I like to use both, since in some cases, Ghidra makes it easier to see some things than Binja, and vice versa. 
+
+After Ghidra does its analysis, we find that `server` is a Go binary. Trying to find the main function, we find a whole lot of interesting functions, but among them, two `Ping` functions
+
+![image](https://github.com/user-attachments/assets/161b0988-4d21-4eea-8b6c-39133466fa04)
+
+However, there isn't really anything interesting there to build off of within them, but we'll keep our eye on these `main` functions. 
+
+After some more snooping around, I stumble upon a jackpot of interesting functions each beginning with `auth`. Since the `server` executable is trying to ping what it calls an *auth* server, we're probably in the right place. Specifically here for these functions under `authServiceClient`, these seem to outline the functions that the executable is able to call on the auth server, which are `Authenticate`, `Logout`, `Ping` (the one we're looking for), `RefreshToken`, `RegisterOTPSeed`, and `VerifyOTP`. So 6 in total. 
+
+![image](https://github.com/user-attachments/assets/91b35027-1d2e-4318-9f49-9fa36ced77d4)
+
+Also under these `auth` functions, we can find functions that correspond to the requests and responses for the 6 functions we found above. So for `Ping`, we have `PingRequest` and `PingResponse` functions. 
+
+![image](https://github.com/user-attachments/assets/34702a39-7b8e-4da5-808e-6b1e152fb103)
+
+We see some sub-functions that shed light on what parameters each function is expecting for requests and responses. For example, for the `AuthRequest` function, there are sub-functions called `GetPassword` and `GetUsername`, which means that it probably expects a password and username as parameters in the request. 
+
+![image](https://github.com/user-attachments/assets/b5d4da74-1977-4e9b-aff9-8bab1b202d9b)
+
+However, the most important thing for us is the `PingRequest` function, and if we take a look, it has a `GetPing` sub-function, which means it probably expects that as a parameter in its request. 
+
+![image](https://github.com/user-attachments/assets/0bf781f9-44fe-4fef-919c-72c4987232c6)
+
+We can deduce the parameters for all 6 functions here in the same way. So we can start trying to make the auth server now, but how?
+
+Since the `server` executable is in Go, we'll make the auth server in Go too. Go's implementation of the `rpc` protocol is `grpc`, and [this](https://pascalallen.medium.com/how-to-build-a-grpc-server-in-go-943f337c4e05) guide was helpful in getting started. Essentially, we first need to create a `.proto` file in which we define each of our functions, as well as their request and response parameters. That should be relatively easy to do based on what we found in Ghidra. The issue however is the `package` and `service` name that each `.proto` file needs. This is a little problematic because specifically the `service` needs to match on both the client and the server. 
+
+Thankfully, using both Ghidra *and* Binja was pretty helpful here. If we go into the `auth/auth_grpc.(*authServiceClient).Ping` function we found in Ghidra on Binja, near the end we can see some interesting text that seems to refer to an error with a function call. 
+
+![image](https://github.com/user-attachments/assets/795cf2ce-5327-4286-8b15-12c04c527f5d)
+
+The text refers to `auth_service/AuthService`. `auth_service` is likely our package name, and `AuthService` is our `service` name. 
+
+Now we have all we need, let's create our proto file. I name mine `ping.proto` since we're trying to get the ping function to work specifically, and set my `go_package` to `/seedGeneration`, since we saw some references to `seedGeneration` in those `main` functions we found earlier. The name of your proto file and `go_package` doesn't matter though. 
+
+```text
+syntax = "proto3";
+
+package auth_service;
+
+option go_package = "/seedGeneration";
+
+service AuthService {
+    rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse);
+    rpc Logout(LogoutRequest) returns (LogoutResponse);
+    rpc Ping(PingRequest) returns (PingResponse);
+    rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+    rpc RegisterOTPSeed(RegisterOTPSeedRequest) returns (RegisterOTPSeedResponse);
+    rpc VerifyOTP(VerifyOTPRequest) returns (VerifyOTPResponse);
+}
+
+message AuthenticateRequest {
+    // Define fields needed for authentication
+    string username = 1; // User's username
+    string password = 2; // User's password
+}
+
+message AuthenticateResponse {
+    // Define fields for the response
+    bool success = 1;        // Indicates if authentication was successful
+    string message = 2;      // Optional message for additional information
+}
+
+message LogoutRequest {
+    // Define fields needed for logout
+}
+
+message LogoutResponse {
+    // Define fields for the response
+}
+
+message PingRequest {
+    // Define fields needed for the request
+    int64 ping = 1;
+}
+
+message PingResponse {
+    int64 pong = 1;
+}
+
+message RefreshTokenRequest {
+    // Define fields needed for refresh token
+}
+
+message RefreshTokenResponse {
+    // Define fields for the response
+}
+
+message RegisterOTPSeedRequest {
+    // Define fields needed for OTP seed registration
+    string username = 1;
+    int64 seed = 2;
+}
+
+message RegisterOTPSeedResponse {
+    // Define fields for the response
+    bool success = 1;
+}
+
+message VerifyOTPRequest {
+    // Define fields needed for OTP verification
+    string username = 1;
+    int64 otp = 2;
+}
+
+message VerifyOTPResponse {
+    // Define fields for the response
+    bool success = 1;
+    int64 token = 2;
+}
+```
+
+<br></br>
+
+With our `.proto` file made, we run the `protoc` command to compile it into some Go files for us to use
+
+`protoc --go_out=. --go-grpc_out=. ping.proto`
+
+Now let's create the auth server. In my code, I set up some sample checks for `AuthenticateRequest` and `VerifyOTP` just to see if they do anything. Most importantly, we run the server on port 50052. 
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"net"
+	"google.golang.org/grpc"
+	"server/seedGeneration" // Replace with the actual import path for your generated pb
+)
+
+type server struct {
+	seedGeneration.UnimplementedAuthServiceServer
+}
+
+// Authenticate handles the Authenticate RPC method
+func (s *server) Authenticate(ctx context.Context, req *seedGeneration.AuthenticateRequest) (*seedGeneration.AuthenticateResponse, error) {
+	//fmt.Println("Authenticate request received:", req)
+	// Simple logic for demonstration (you can replace it with real authentication logic)
+	if req.Username == "testuser" && req.Password == "testpass" {
+		return &seedGeneration.AuthenticateResponse{
+			Success: true,
+			Message: "Authentication successful",
+		}, nil
+	}
+	return &seedGeneration.AuthenticateResponse{
+		Success: true,
+		Message: "Authentication failed",
+	}, nil
+}
+
+// Logout handles the Logout RPC method
+func (s *server) Logout(ctx context.Context, req *seedGeneration.LogoutRequest) (*seedGeneration.LogoutResponse, error) {
+	fmt.Println("Logout request received:", req)
+	// For now, just return a successful response
+	return &seedGeneration.LogoutResponse{}, nil
+}
+
+// Ping handles the Ping RPC method
+func (s *server) Ping(ctx context.Context, req *seedGeneration.PingRequest) (*seedGeneration.PingResponse, error) {
+	fmt.Println("Ping request received:", req)
+	// Simple logic for Pong response
+	return &seedGeneration.PingResponse{Pong: req.Ping}, nil
+}
+
+// RefreshToken handles the RefreshToken RPC method
+func (s *server) RefreshToken(ctx context.Context, req *seedGeneration.RefreshTokenRequest) (*seedGeneration.RefreshTokenResponse, error) {
+	fmt.Println("RefreshToken request received:", req)
+	// For now, just return a simple response
+	return &seedGeneration.RefreshTokenResponse{}, nil
+}
+
+// RegisterOTPSeed handles the RegisterOTPSeed RPC method
+func (s *server) RegisterOTPSeed(ctx context.Context, req *seedGeneration.RegisterOTPSeedRequest) (*seedGeneration.RegisterOTPSeedResponse, error) {
+	//fmt.Println("RegisterOTPSeed request received:", req)
+	// For now, just return a success response
+	return &seedGeneration.RegisterOTPSeedResponse{
+		Success: true,
+	}, nil
+}
+
+// VerifyOTP handles the VerifyOTP RPC method
+func (s *server) VerifyOTP(ctx context.Context, req *seedGeneration.VerifyOTPRequest) (*seedGeneration.VerifyOTPResponse, error) {
+	fmt.Println("VerifyOTP request received:", req)
+	// For now, just verify OTP logic (simple check)
+	if req.Otp == 123456 {
+		return &seedGeneration.VerifyOTPResponse{
+			Success: true,
+			Token:   654321, // Sample token
+		}, nil
+	}
+	return &seedGeneration.VerifyOTPResponse{
+		Success: false,
+		Token:   0,
+	}, nil
+}
+
+func main() {
+	// Listen on port 50052
+	lis, err := net.Listen("tcp", ":50052")
+	if err != nil {
+		fmt.Println("Failed to listen on port 50052:", err)
+		return
+	}
+
+	// Create a gRPC server
+	grpcServer := grpc.NewServer()
+
+	// Register the AuthService server
+	seedGeneration.RegisterAuthServiceServer(grpcServer, &server{})
+
+	// Start the server
+	fmt.Println("gRPC server started on port 50052")
+	if err := grpcServer.Serve(lis); err != nil {
+		fmt.Println("Failed to start server:", err)
+	}
+}
+```
+<br></br>
+
+Let's run it with `go run auth_server.go`
+
+![image](https://github.com/user-attachments/assets/ffccbf0f-df62-4354-b4cd-d150667b4034)
+
+If we run the `server` executable again, we get a different result!
+
+![image](https://github.com/user-attachments/assets/5dfd2069-54d2-4402-a3a5-1a240d47830b)
+![image](https://github.com/user-attachments/assets/6cc20ad7-64a8-4122-ac65-d35ad6880360)
+
+So now the `server` executable is starting to act like an actual server, and is hosting something on port 50051. Now we essentially have to do what we just did for the auth server but backwards. Instead of finding and defining functions for a server to respond to, we need to instead find and define functions for a client so that we can call them. Thankfully however, we've already found them. They are the `main.(*seedGenerationServer)` functions we found from earlier.
+
+![image](https://github.com/user-attachments/assets/17899698-21b4-4bff-ad0d-da479dc0cbe9)
+
+We can find what parameters they expect from functions beginning with `otp/seedgen`
+
+![image](https://github.com/user-attachments/assets/cb5b4297-721a-4dff-a685-844ab86a5a78)
+
+So for example, a `GetSeed` request expects a username and password
+
+![image](https://github.com/user-attachments/assets/7e688fff-d8d7-4062-a2db-1b4225c27fa7)
+
+What's our `package` and `service` names this time though? `package` I'll just call `seed_generation` due to the name of the `main` functions we found. We can find the `service` name in Ghidra, under `otp/seedgen`, there are a lot of functions defined with the name, `SeedGenerationService`. That's probably our `service` name.
+
+![image](https://github.com/user-attachments/assets/1a42ff05-4152-47c7-9096-7ac4cf995b91)
+
+Now we can make our `.proto` file! I named mine `seedGeneration.proto`
+
+```text
+syntax = "proto3";
+
+package seed_generation; 
+
+option go_package = "/seedGeneration";
+
+service SeedGenerationService {
+   
+    rpc GetSeed(GetSeedRequest) returns (GetSeedResponse);
+    rpc StressTest(GetStressTestRequest) returns (GetStressTestResponse);
+    rpc Ping(GetPingRequest) returns (GetPingResponse);
+
+}
+
+message GetStressTestRequest {
+    // Define fields needed for authentication
+    int64 count = 1;
+}
+
+message GetStressTestResponse {
+    // Define fields for the response
+    string response = 1;
+
+}
+
+message GetSeedRequest {
+    // Define fields needed for authentication
+    string username = 1;
+    string token = 2;
+  
+}
+
+message GetSeedResponse {
+    // Define fields for the response
+    int64 seed = 1;
+    int64 count = 2;
+}
+
+message GetPingRequest {
+    // Define fields needed for the request
+    int64 ping = 1;
+}
+
+message GetPingResponse {
+    int64 pong = 1;
+}
+```
+<br></br>
+
+Instead of Go, it turns out you can do `grpc` stuff in Python too. To save myself the Go setup headache, I made my client in Python. For Python, compile the proto file with
+
+`python -m grpc_tools.protoc --proto_path=. --python_out=. --grpc_python_out=. seedGeneration.proto`
+
+(Make sure you have installed the needed Python libraries with `pip install grpcio grpcio-tools protobuf`)
+
+I want to call the `GetSeed` function first since it seems the most promising. However as mentioned before, it expects a username and password. What could they be?
+
+This is where the `shredded.jpg` image comes into play. I was thinking of what `JASPER` meant, or where I've seen it before, and then I remembered Task 1. On the suspicious order, one of the emails was `jasper_04044@guard.ar`!
+
+![image](https://github.com/user-attachments/assets/d2eda0be-aa33-4b92-9a18-b40467871f02)
+
+`jasper_04044` is probably our username! For the password, I just went with `password` as a test. 
+
+Let's make the client now in Python. I make some code to call `StressTest` too but I comment it out for now. I mainly want to see what `GetSeed` does. 
+
+```python
+import grpc
+import seedGeneration_pb2
+import seedGeneration_pb2_grpc
+
+def get_seed(stub, username, password):
+    # Create the GetSeed request (add any fields if necessary)
+    request = seedGeneration_pb2.GetSeedRequest(username=username, token=password)
+    
+    # Call the GetSeed method
+    response = stub.GetSeed(request)
+    
+    return response
+
+def stress_test(stub, count):
+    request = seedGeneration_pb2.GetStressTestRequest(count=count)
+
+    response = stub.StressTest(request)
+    return response
+    
+
+def run():
+    # Connect to the gRPC server
+    with grpc.insecure_channel('localhost:50051') as channel:
+
+        stub = seedGeneration_pb2_grpc.SeedGenerationServiceStub(channel)
+        
+        # Replace with your actual username and password
+        
+        username = "jasper_04044"
+        password = "password"
+
+        count = 1
+        
+        print("Send get_seed")
+        response = get_seed(stub, username, password)
+        print("Get seed response:")
+        print(response)
+
+        #response = stress_test(stub, count)
+        #print(response)
+
+
+if __name__ == "__main__":
+    run()
+```
+<br></br>
+
+If we run this, we get a response!
+
+![image](https://github.com/user-attachments/assets/ff1a9513-8556-46f3-8bc6-cb07fecf68c5)
+![image](https://github.com/user-attachments/assets/a44da953-2b4a-4e7a-a56c-ae29df9cad91)
+>Note the dates being after the competition is due to me recreating the results when making this writeup
+
+Well, `{"time":"2025-02-15T20:57:05.742357055-06:00","level":"INFO","msg":"Registered OTP seed with authentication service","username":"jasper_04044","seed":8074660958352453125,"count":1}` is some JSON, and the 3 important keys are `{"username":"jasper_04044","seed":8074660958352453125,"count":1}`. Is this our answer? I submit this, but it says that what I have isn't quite right. So we have the correct keys, just not the correct values. What to do now?
+
+After some thinking, I remembered that the prompt was asking for the output that would be given if the attackers had "successfully leveraged" the running software. That means that they had to exploit something. Looking back at the `GetSeed` function in Ghidra, we find something interesting. 
+
+![image](https://github.com/user-attachments/assets/fdd1ab60-129f-41bd-960c-e8eaae5ea6f7)
+
+A call to some sort of `auth` function. If we take a look, there's a lot of logic, but one if statement stands out. 
+
+![image](https://github.com/user-attachments/assets/1ce8996f-0ff5-42a3-b933-6b596640e735)
+
+It's even more evident in Binja with a `test user authenticated...` message
+
+![image](https://github.com/user-attachments/assets/21ef9c32-aa50-493c-a943-260c135b0f6c)
+
+It seems that we have to somehow exploit the `server` executable, or its logic, in order to pass this conditional check. Well, how do we even go about doing that? First we need to see what's being passed into the `auth` function
+
+Let's run `server` using gdb and set a breakpoint at `main.(*SeedgenAuthClient).auth`
+
+![image](https://github.com/user-attachments/assets/6dbcf66e-feca-474d-95de-7c908c88f33f)
+
+If we run our client and call `GetSeed`, we hit our breakpoint 
+
+![image](https://github.com/user-attachments/assets/e7cd7a8d-c36a-4b21-b1a6-a9ca418b018f)
+
+So username and password is passed into `auth`. Additionally, some kind of value, `c` is passed in as well to both `GetSeed` and `auth`. For our next step, let's see if we can rename some variables in the `auth` function on Ghidra to make it easier to read
+
+```c
+long main.(*SeedgenAuthClient).auth
+               (long param_1,undefined8 param_2,undefined8 param_3,ulong param_4,char *param_5,
+               long param_6)
+
+{
+  long *in_RAX;
+  long lVar1;
+  ulong uVar2;
+  undefined8 *puVar3;
+  ulong uVar4;
+  long unaff_RBX;
+  long *plVar5;
+  long unaff_R14;
+  uint uVar6;
+  double __x;
+  double dVar7;
+  long *param_7;
+  long param_8;
+  ulong param_9;
+  long param_10;
+  undefined8 param_11;
+  char *param_12;
+  long param_13;
+  undefined local_28 [16];
+  undefined local_18 [16];
+  
+  param_7 = in_RAX;
+  param_9 = param_4;
+  param_8 = unaff_RBX;
+  param_11 = param_2;
+  param_10 = param_1;
+  param_12 = param_5;
+  param_13 = param_6;
+  while (local_28 + 8 <= *(undefined **)(unaff_R14 + 0x10)) {
+    runtime.morestack_noctxt.abi0();
+  }
+  param_7[3] = param_7[3] + 1;
+  uVar4 = param_7[2];
+  lVar1 = math/rand.Int63();
+  param_7[2] = lVar1;
+  runtime.convTstring();
+  local_28._8_8_ = &PTR_DAT_0095c9a0;
+  local_28._0_8_ = &DAT_008075e0;
+  local_18._8_8_ = runtime.convTstring();
+  local_18._0_8_ = &DAT_008075e0;
+  dVar7 = log/slog.(*Logger).log(__x);
+  if ((param_13 != 0) && (*param_12 == '\0')) {
+    return param_7[2];
+  }
+  uVar2 = 0;
+  do {
+    if ((long)param_9 <= (long)uVar2) {
+      if ((uint)uVar4 == 0x7032f1e8) {
+        log/slog.(*Logger).log(dVar7);
+        return param_7[2];
+      }
+      plVar5 = (long *)0x0;
+      log/slog.(*Logger).log(dVar7);
+      lVar1 = runtime.newobject();
+      *(ulong *)(lVar1 + 0x30) = param_9;
+      if (runtime.writeBarrier != 0) {
+        lVar1 = runtime.gcWriteBarrier1();
+        *plVar5 = param_8;
+      }
+      *(long *)(lVar1 + 0x28) = param_8;
+      *(undefined8 *)(lVar1 + 0x40) = param_11;
+      if (runtime.writeBarrier != 0) {
+        lVar1 = runtime.gcWriteBarrier1();
+        *plVar5 = param_10;
+      }
+      *(long *)(lVar1 + 0x38) = param_10;
+      dVar7 = (double)(**(code **)(*param_7 + 0x18))(lVar1,0,param_7,&regexp.arrayNoInts,0,0);
+      log/slog.(*Logger).log(dVar7);
+      puVar3 = (undefined8 *)runtime.newobject();
+      puVar3[1] = 0x16;
+      *puVar3 = &DAT_008b9c8b;
+      return -1;
+    }
+    if ((long)param_9 < (long)(uVar2 + 4)) {
+      lVar1 = param_9 - uVar2;
+      if (lVar1 == 1) {
+        if (param_9 <= uVar2) {
+                    /* WARNING: Subroutine does not return */
+          runtime.panicIndex();
+        }
+        uVar6 = (uint)*(byte *)(param_8 + uVar2);
+      }
+      else if (lVar1 == 2) {
+        if (param_9 <= uVar2) {
+                    /* WARNING: Subroutine does not return */
+          runtime.panicIndex();
+        }
+        if (param_9 <= uVar2 + 1) {
+                    /* WARNING: Subroutine does not return */
+          runtime.panicIndex();
+        }
+        uVar6 = (uint)*(ushort *)(param_8 + uVar2);
+      }
+      else if (lVar1 == 3) {
+        if (param_9 <= uVar2) {
+                    /* WARNING: Subroutine does not return */
+          runtime.panicIndex();
+        }
+        if (param_9 <= uVar2 + 1) {
+                    /* WARNING: Subroutine does not return */
+          runtime.panicIndex();
+        }
+        if (param_9 <= uVar2 + 2) {
+                    /* WARNING: Subroutine does not return */
+          runtime.panicIndex();
+        }
+        uVar6 = (uint)CONCAT12(*(undefined *)(uVar2 + 2 + param_8),*(undefined2 *)(param_8 + uVar2))
+        ;
+      }
+      else {
+        uVar6 = 0;
+      }
+    }
+    else {
+      if (param_9 <= uVar2) {
+                    /* WARNING: Subroutine does not return */
+        runtime.panicIndex();
+      }
+      if (param_9 <= uVar2 + 1) {
+                    /* WARNING: Subroutine does not return */
+        runtime.panicIndex();
+      }
+      if (param_9 <= uVar2 + 2) {
+                    /* WARNING: Subroutine does not return */
+        runtime.panicIndex();
+      }
+      if (param_9 <= uVar2 + 3) {
+                    /* WARNING: Subroutine does not return */
+        runtime.panicIndex();
+      }
+      uVar6 = *(uint *)(param_8 + uVar2);
+    }
+    uVar4 = (ulong)((uint)uVar4 ^ uVar6);
+    uVar2 = uVar2 + 4;
+  } while( true );
+}
+```
+<br></br>
+
+Right off the bat, we can see that `uVar2` seems to be some kind of counter, since it starts at 0 and gets incremented by 4 each iteration. Let's rename it to `i`. 
+
+Something interesting is `param_7`, which is set equal to `in_RAX`. If we run `client.py` and `server` again and hit the breakpoint in gdb, looking at what's stored in `rax`, we can see that this is what `c` is pointing to.
+
+![image](https://github.com/user-attachments/assets/3c2738f7-09ec-4141-a5a2-f3df4e2e804f)
+![image](https://github.com/user-attachments/assets/695c4c64-2a4d-4a41-bea6-f412acde7e4e)
+
+We also see that `param_7[2]` is assigned to `lVar1`, which itself is assigned to a random number, `math/rand.Int63();`. Well in gdb we can see what that number is by using pointer arithmetic to essentially index `param_7[2]` through the memory address that `c` is pointing to. 
+
+Re-running `client.py` and `server`, we hit the breakpoint again in gdb and this time get
+
+![image](https://github.com/user-attachments/assets/e9f269a7-af86-41da-b791-a324591bf1fa)
+
+Since `c` is pointing to `param_7`, let's use pointer arithmetic to get the value at `param_7[2]`. If we add `2*8` to this address, we should get the element at the index 2, since each element takes up 8 bytes. We get
+ a value:
+
+ ![image](https://github.com/user-attachments/assets/807b4eb7-42f3-4a0d-ba75-88fe285f6fa0)
+
+ This is the number `6205117966191793308`
+
+We get the response
+
+![image](https://github.com/user-attachments/assets/c65b1582-92e2-4146-a5e6-646e09ec4a7e)
+
+That didn't really tell us much, let's do another run. 
+
+This time we get
+
+![image](https://github.com/user-attachments/assets/17b381a2-7c74-4b3f-b8eb-97f6586ba64a)
+
+This is the number `8074660958352453125`. Hey wait a second. That was our seed value from the last run!
+
+This time we get this output:
+
+![image](https://github.com/user-attachments/assets/416900b3-c1d2-4a11-9f08-8a8f37434d61)
+
+One more run to make sure we know what's going on.
+
+![image](https://github.com/user-attachments/assets/1b19f0c0-18ec-47e3-8a95-c5be2fcf9e58)
+
+Sure enough, this is the number `3009302561299014827`, which was our seed from the last run. So we can confidently say that the random number generated is the seed, so we can rename `lVar1` to `seed` in Ghidra. We also keep in mind that `param_7[2]` is where the seed is stored. 
+
+The logic seems to be indexing or taking chunks of `param_8` and assigning it to `uVar6`. `param_8` is assigned to `unaff_RBX`. If we look in gdb to see what's at `rbx`, we see that it's our username
+
+![image](https://github.com/user-attachments/assets/ebdb1ca6-a3da-43d5-b23e-1e480c33bdd5)
+
+So `param_8` is the username, and we can change the name accordingly. We'll rename `uVar6` to `chunk`, since it's essentially a chunk of the username. 
+
+If we look at the what dictates the loop, the loop is dependent on `i` being less than `param_9`. Well if we're taking chunks of the username each time, `param_9` is likely the length of the username, since it would stop the loop if `i` is greater than or equal to the username's length. We can change `param_9` accordingly. 
+
+The function then XOR's the username chunk and whatever `uVar4` is. `uVar4` is checked with the value `0x7032f1e8` in each iteration to see if they are equal, and then prints the `user authenticated...` message we saw before in Binja. We'll rename `uVar4` to `target`. 
+
+After our variable renaming, we now have this code. 
+
+```c
+long main.(*SeedgenAuthClient).auth
+               (long param_1,undefined8 param_2,undefined8 param_3,ulong param_4,char *param_5,
+               long param_6)
+
+{
+  long *in_RAX;
+  long seed;
+  ulong i;
+  undefined8 *puVar1;
+  ulong target;
+  long unaff_RBX;
+  long *plVar2;
+  long unaff_R14;
+  uint chunk;
+  double __x;
+  double dVar3;
+  long *param_7;
+  long username;
+  ulong username_length;
+  long lStack0000000000000020;
+  undefined8 uStack0000000000000028;
+  char *pcStack0000000000000030;
+  long lStack0000000000000038;
+  undefined local_28 [16];
+  undefined local_18 [16];
+  
+  param_7 = in_RAX;
+  username_length = param_4;
+  username = unaff_RBX;
+  uStack0000000000000028 = param_2;
+  lStack0000000000000020 = param_1;
+  pcStack0000000000000030 = param_5;
+  lStack0000000000000038 = param_6;
+  while (local_28 + 8 <= *(undefined **)(unaff_R14 + 0x10)) {
+    runtime.morestack_noctxt.abi0();
+  }
+  param_7[3] = param_7[3] + 1;
+  target = param_7[2];
+  seed = math/rand.Int63();
+  param_7[2] = seed;
+  runtime.convTstring();
+  local_28._8_8_ = &PTR_DAT_0095c9a0;
+  local_28._0_8_ = &DAT_008075e0;
+  local_18._8_8_ = runtime.convTstring();
+  local_18._0_8_ = &DAT_008075e0;
+  dVar3 = log/slog.(*Logger).log(__x);
+  if ((lStack0000000000000038 != 0) && (*pcStack0000000000000030 == '\0')) {
+    return param_7[2];
+  }
+  i = 0;
+  do {
+    if ((long)username_length <= (long)i) {
+      if ((uint)target == 0x7032f1e8) {
+        log/slog.(*Logger).log(dVar3);
+        return param_7[2];
+      }
+      plVar2 = (long *)0x0;
+      log/slog.(*Logger).log(dVar3);
+      seed = runtime.newobject();
+      *(ulong *)(seed + 0x30) = username_length;
+      if (runtime.writeBarrier != 0) {
+        seed = runtime.gcWriteBarrier1();
+        *plVar2 = username;
+      }
+      *(long *)(seed + 0x28) = username;
+      *(undefined8 *)(seed + 0x40) = uStack0000000000000028;
+      if (runtime.writeBarrier != 0) {
+        seed = runtime.gcWriteBarrier1();
+        *plVar2 = lStack0000000000000020;
+      }
+      *(long *)(seed + 0x38) = lStack0000000000000020;
+      dVar3 = (double)(**(code **)(*param_7 + 0x18))(seed,0,param_7,&regexp.arrayNoInts,0,0);
+      log/slog.(*Logger).log(dVar3);
+      puVar1 = (undefined8 *)runtime.newobject();
+      puVar1[1] = 0x16;
+      *puVar1 = &DAT_008b9c8b;
+      return -1;
+    }
+    if ((long)username_length < (long)(i + 4)) {
+      seed = username_length - i;
+      if (seed == 1) {
+        if (username_length <= i) {
+                    /* WARNING: Subroutine does not return */
+          runtime.panicIndex();
+        }
+        chunk = (uint)*(byte *)(username + i);
+      }
+      else if (seed == 2) {
+        if (username_length <= i) {
+                    /* WARNING: Subroutine does not return */
+          runtime.panicIndex();
+        }
+        if (username_length <= i + 1) {
+                    /* WARNING: Subroutine does not return */
+          runtime.panicIndex();
+        }
+        chunk = (uint)*(ushort *)(username + i);
+      }
+      else if (seed == 3) {
+        if (username_length <= i) {
+                    /* WARNING: Subroutine does not return */
+          runtime.panicIndex();
+        }
+        if (username_length <= i + 1) {
+                    /* WARNING: Subroutine does not return */
+          runtime.panicIndex();
+        }
+        if (username_length <= i + 2) {
+                    /* WARNING: Subroutine does not return */
+          runtime.panicIndex();
+        }
+        chunk = (uint)CONCAT12(*(undefined *)(i + 2 + username),*(undefined2 *)(username + i));
+      }
+      else {
+        chunk = 0;
+      }
+    }
+    else {
+      if (username_length <= i) {
+                    /* WARNING: Subroutine does not return */
+        runtime.panicIndex();
+      }
+      if (username_length <= i + 1) {
+                    /* WARNING: Subroutine does not return */
+        runtime.panicIndex();
+      }
+      if (username_length <= i + 2) {
+                    /* WARNING: Subroutine does not return */
+        runtime.panicIndex();
+      }
+      if (username_length <= i + 3) {
+                    /* WARNING: Subroutine does not return */
+        runtime.panicIndex();
+      }
+      chunk = *(uint *)(username + i);
+    }
+    target = (ulong)((uint)target ^ chunk);
+    i = i + 4;
+  } while( true );
+}
+```
+<br></br>
+
+Let's look at what it's doing. It gets a little confusing since the function initially has the `seed` variable as the randomly generated seed, assigns it to `param_7[2]`, and then reuses it later as `seed = username_length - i;`. Regardless, we can get a good grasp of what's going on. 
+
+`target` starts as the randomly generated `seed` value. 
+
+`target = param_7[2];`
+
+`auth` then takes the username, and loops through it 4 bytes (characters) at a time. 
+
+```c
+ i = 0;
+  do {
+    if ((long)username_length <= (long)i) {
+    ... Logic ...
+    }
+    i = i + 4;
+  } while( true );
+```
+
+In each iteration, it XOR's `target` with the 4 byte chunk. 
+
+`target = (ulong)((uint)target ^ chunk);`
+
+After it finishes looping through the username and doing all the XOR logic, it checks to see if the final result equals `0x7032f1e8`. 
+
+```c
+if ((uint)target == 0x7032f1e8) {
+	log/slog.(*Logger).log(dVar3);
+	return param_7[2];
+}
+```
+So our goal is to find the username, seed, and count that once going through the XOR logic, will equal `0x7032f1e8`. Based on the `shredded.jpg` image, it seems that we already have the correct username, which is `jasper_04044`. We just need to find the seed and count. 
+
+Technically, we could just call `GetSeed` a bunch of times, but that would take forever. The simplest way would be to recreate all this logic and run it locally. There's just one issue, which is the randomly generated number. I thought it would change each time, which would make it impossible to do locally, but after resetting the `server` executable, we can see that the seed values at the corresponding counts are the same each time
+
+![image](https://github.com/user-attachments/assets/7c21daea-de18-4a52-98bc-62015718c8fe)
+
+Or in other words, count 1 is always the seed `8074660958352453125`, count 2 is always the seed `3009302561299014827`, etc, etc every time. This is why count is one of the important keys in the JSON we have to submit, since it is tied to the correct seed. The fact that the same seeds are generated each time means that the random number generator is seeded, we just have to find what the rng seed is (sorry for saying seed so much there). 
+
+In Ghidra, we can find the function, `math/rand.(*Rand).Seed`, which is the Go function used to seed its random number generator. 
+
+![image](https://github.com/user-attachments/assets/c0aba82b-ab3a-4409-adf3-d604de833792)
+
+Back in gdb, let's set a breakpoint there.
+
+![image](https://github.com/user-attachments/assets/07170d5f-6c9f-447a-9eac-151af8c6b3bc)
+
+If we run this, we immediately hit the breakpoint, and we can get our seed value!
+
+![image](https://github.com/user-attachments/assets/0b0b4992-1cbe-4a31-b500-fe06f35a58e0)
+
+It's `0x378f96687bfa0`
+
+We have everything we need, let's start making our solve. We will continuously generate numbers using the seeded random number generator, take it and the username `jasper_04044`, go through the XOR logic and loop that we discussed earlier, and check to see if the final result equals `0x7032f1e8`. We'll code the solve in Go since the `server` executable uses specifically Go's random number generator. 
+
+ ```go
+package main
+
+import (
+	"encoding/binary"
+	"fmt"
+	"math/rand"
+)
+
+const (
+	goal uint32 = 0x7032f1e8
+)
+
+
+func simulateXOR(seed uint64, username string) (bool, uint64) {
+    usernameBytes := []byte(username)
+
+    uVar2 := seed // Initialize with seed value
+
+    i := 0
+   
+    for i < len(usernameBytes) {
+        var chunk uint32
+
+        // Access 4 bytes at a time or less (pad smaller chunks)
+        if len(usernameBytes) - i >= 4 {
+            chunk = binary.LittleEndian.Uint32(usernameBytes[i : i+4])
+           
+        } else {
+            // Process remaining bytes based on how many are left
+            switch len(usernameBytes) - i {
+            case 3:
+                chunk = uint32(usernameBytes[i]) |
+                    uint32(usernameBytes[i+1])<<8 |
+                    uint32(usernameBytes[i+2])<<16
+            case 2:
+                chunk = uint32(usernameBytes[i]) |
+                    uint32(usernameBytes[i+1])<<8
+            case 1:
+                chunk = uint32(usernameBytes[i])
+            }
+        }
+
+        // XOR with the current chunk, casting uVar2 to uint before XORing
+        //uVar2 ^= uint64(chunk) 
+        uVar2 = uint64(uint32(uVar2) ^ chunk)
+
+        // Increment by 4 for the next chunk
+        i += 4
+    }
+
+    // Cast uVar2 to uint32 for the final comparison
+    finalValue := uint32(uVar2)
+    return finalValue == goal, uVar2
+}
+
+func main() {
+	// The seed value got earlier
+	seed := uint64(0x378f96687bfa0)
+
+	// Set up the random number generator with the seed
+	rand.Seed(int64(seed))
+
+	// Username for XOR simulation
+	username := "jasper_04044"
+
+	// Start a counter to track attempts
+	var attempts int64 = -1
+
+	for {
+		attempts++
+		
+		// Generate a new random seed value based on the original seed
+		currentSeed := rand.Int63() // 63-bit random value
+        
+  		if attempts == 1 || attempts == 2 || attempts == 3 {
+			fmt.Printf("Count %d with seed: %d\n", attempts, currentSeed)
+		}
+
+		// Simulate XOR logic with the generated random seed and username
+		success, finalUVar4 := simulateXOR(uint64(currentSeed), username)
+		
+		if success {
+			// Print seed and count if match is found
+			fmt.Printf("Match found! Final uVar4: %08x\n", finalUVar4)
+			fmt.Printf("Seed: %d\n", currentSeed)   // Print the seed
+			fmt.Printf("Count: %d\n", attempts)  // Print the count (attempts)
+			break
+		}
+
+	}
+	
+}
+
+```
+<br></br>
+
+I print the first few attempts to see if the seed aligns with the count. We initialize `attempts` to -1 to align the counts and seeds the same way that the `server` executable does. 
+
+Running this with `go run solve.go`, it takes a while, but eventually finishes. We get the output:
+
+![image](https://github.com/user-attachments/assets/195f5e0e-5cc1-4d78-8c00-1b54eb51a8be)
+
+Is this our answer?? I submit `{"username":"jasper_04044","seed":"7571067976073007827","count":"1073639578"}` but it still says it's incorrect. What the heck are we doing wrong, we have the answer right here!
+
+After a long time I realized a fatal mistake I was making. 
+
+Remember when we were using gdb to find out what was stored in `param_7[2]`, and found out that it was the seed? Remember the first number we saw was `6205117966191793308`? After some testing, I find that `6205117966191793308` is actually the *first* seed to be generated by the random number generator, not `8074660958352453125`. `8074660958352453125` is actually the *second* generated number. `6205117966191793308` technically should be the seed that gets printed with count 1. But instead, the *next* seed, `8074660958352453125` is what got printed. 
+
+What does this mean for us? Even though `7571067976073007827` is the correct seed that along with the username would pass the XOR logic, what would get printed to the screen? The *next* seed. The prompt didn't ask for the correct seed, username, and count combo to pass the XOR logic, it asked for the correct seed, username, and count combo that would be ***logged*** once successfully leveraged. 
+
+I tweak the code to print the next seed after we pass the Xor logic
+
+ ```go
+package main
+
+import (
+	"encoding/binary"
+	"fmt"
+	"math/rand"
+)
+
+const (
+	goal uint32 = 0x7032f1e8
+)
+
+
+func simulateXOR(seed uint64, username string) (bool, uint64) {
+    usernameBytes := []byte(username)
+
+    uVar2 := seed // Initialize with seed value
+
+    i := 0
+   
+    for i < len(usernameBytes) {
+        var chunk uint32
+
+        // Access 4 bytes at a time or less (pad smaller chunks)
+        if len(usernameBytes) - i >= 4 {
+            chunk = binary.LittleEndian.Uint32(usernameBytes[i : i+4])
+           
+        } else {
+            // Process remaining bytes based on how many are left
+            switch len(usernameBytes) - i {
+            case 3:
+                chunk = uint32(usernameBytes[i]) |
+                    uint32(usernameBytes[i+1])<<8 |
+                    uint32(usernameBytes[i+2])<<16
+            case 2:
+                chunk = uint32(usernameBytes[i]) |
+                    uint32(usernameBytes[i+1])<<8
+            case 1:
+                chunk = uint32(usernameBytes[i])
+            }
+        }
+
+        // XOR with the current chunk, casting uVar2 to uint before XORing
+        //uVar2 ^= uint64(chunk) 
+        uVar2 = uint64(uint32(uVar2) ^ chunk)
+
+        // Increment by 4 for the next chunk
+        i += 4
+    }
+
+    // Cast uVar2 to uint32 for the final comparison
+    finalValue := uint32(uVar2)
+    return finalValue == goal, uVar2
+}
+
+func main() {
+	// The seed value got earlier
+	seed := uint64(0x378f96687bfa0)
+
+	// Set up the random number generator with the seed
+	rand.Seed(int64(seed))
+
+	// Username for XOR simulation
+	username := "jasper_04044"
+
+	// Start a counter to track attempts
+	var attempts int64 = -1
+
+	for {
+		attempts++
+		
+		// Generate a new random seed value based on the original seed
+		currentSeed := rand.Int63() // 63-bit random value
+        
+  		if attempts == 1 || attempts == 2 || attempts == 3 {
+			fmt.Printf("Count %d with seed: %d\n", attempts, currentSeed)
+		}
+
+		// Simulate XOR logic with the generated random seed and username
+		success, finalUVar4 := simulateXOR(uint64(currentSeed), username)
+		
+		if success {
+			// Print seed and count if match is found
+			fmt.Printf("Match found! Final uVar4: %08x\n", finalUVar4)
+			fmt.Printf("Seed: %d\n", currentSeed)   // Print the seed
+			fmt.Printf("Count: %d\n", attempts)  // Print the count (attempts)
+ 	        fmt.Printf("Next seed: %d\n", rand.Int63())
+			break
+		}
+
+	}
+	
+}
+```
+<br></br>
+
+This time we get the output:
+
+![image](https://github.com/user-attachments/assets/920deca2-fa73-45ea-bb9e-7537b95f02f8)
+
+Therefore our answer is 
+
+`{"username":"jasper_04044","seed":"5838753747453732554","count":"1073639578"}`
+
+And with that, we have finally solved Task 3. Took a while, huh?
+
+**Results:**
+>So that's how they leveraged their tokens!
+
+## Task 4 - LLMs never lie - (Programming, Forensics)
+
+**Prompt 4:**
+
+>Great work! With a credible threat proven, NSA's Cybersecurity Collaboration Center reaches out to GA and discloses the vulnerability with some indicators of compromise (IoCs) to scan for.
+>
+>New scan reports in hand, GA's SOC is confident they've been breached using this attack vector. They've put in a request for support from NSA, and Barry is now tasked with assisting with the incident response.
+>
+>While engaging the development teams directly at GA, you discover that their software engineers rely heavily on an offline LLM to assist in their workflows. A handful of developers vaguely recall once getting some confusing additions to their responses but can't remember the specifics.
+>
+>Barry asked for a copy of the proprietary LLM model, but approvals will take too long. Meanwhile, he was able to engage GA's IT Security to retrieve partial audit logs for the developers and access to a caching proxy for the developers' site.
+>
+>Barry is great at DFIR, but he knows what he doesn't know, and LLMs are outside of his wheelhouse for now. Your mutual friend Dominique was always interested in GAI and now works in Research Directorate.
+>
+>The developers use the LLM for help during their work duties, and their AUP allows for limited personal use. GA IT Security has bound the audit log to an estimated time period and filtered it to specific processes. Barry sent a client certificate for you to authenticate securely with the caching proxy using https://34.195.208.56/?q=query%20string.
+>
+>You bring Dominique up to speed on the importance of the mission. They receive a nod from their management to spend some cycles with you looking at the artifacts. You send the audit logs their way and get to work looking at this one.
+>
+>Find any snippet that has been purposefully altered.
+>
+>Downloads:
+>
+>Client certificate issued by the GA CA (client.crt)
+>
+>Client private key used to establish a secure connection (client.key)
+>
+>TTY audit log of a developer's shell activity (audit.log)
+>
+>Prompt:
+>
+>A maliciously altered line from a code snippet
+
+
+### Solve
+
+So this Task gives us an audit log, as well as a certificate and key we can use to connect to a caching proxy. 
+
+First, let's take a look at the audit log. It's really long, but remembering that we're looking for presumably LLM queries, we immediately see some interesting lines:
+
+![image](https://github.com/user-attachments/assets/1e73fabc-4713-4570-997c-c5fb73007f13)
+
+We see lines that begin with `gagpt -m ...`. These are likely queries to the LLM. We know that we are trying to find any suspicious lines that have been added to the LLM's responses, so how do we get the responses? That's where the caching proxy comes into play. 
+
+We can send a simple get request, using the given `.crt` and `.key` file to make the connection, to the caching proxy at `https://34.195.208.56/?q=query%20string`, with `query%20string` being the `gagpt -m ...` line. This will return us the LLM's response in JSON.
+
+We can write a Python script to automate going through the audit log to find  `gagpt -m ...` lines, which we can use in our get request. I save our responses to a file named `queries_and_responses.txt` so that we can take a look at them once the script is done executing. 
+
+```python
+import re
+import requests
+import urllib.parse
+import json
+
+# Define the log file path and server URL
+log_file_path = 'audit.log'
+server_url = "https://34.195.208.56/"
+
+# Define the certificate paths (if needed)
+client_cert = 'client.crt'
+client_key = 'client.key'
+output_file = 'queries_and_responses.txt'
+
+def extract_gagpt_queries(log_file_path):
+    """
+    Extracts 'gagpt -m' queries from the audit log.
+    """
+    with open(log_file_path, 'r') as log_file:
+        lines = log_file.readlines()
+
+    # Regex to match the gagpt -m queries
+    gagpt_queries = []
+    for line in lines:
+        match = re.search(r'd=gagpt -m "(.*?)"', line)
+        if match:
+            query = match.group(1)
+            gagpt_queries.append(query)
+
+    return gagpt_queries
+
+def send_query_to_server(query):
+    """
+    Sends a query to the server using curl-like behavior in Python with requests.
+    """
+    # URL encode the query
+    encoded_query = urllib.parse.quote(query)
+    
+    # Define the URL with the query parameter
+    url = f"{server_url}?q={encoded_query}"
+    
+    # Send the GET request
+    try:
+        response = requests.get(url, cert=(client_cert, client_key), verify=False)  # Disable SSL verification for now
+        if response.status_code == 200:
+            return response.json()  # Assuming the response is in JSON format
+        else:
+            return f"Error: {response.status_code} - {response.text}"
+    except requests.exceptions.RequestException as e:
+        return f"Request failed: {e}"
+
+def save_query_and_response(query, response):
+    """
+    Saves the query and response to a file with line spacing.
+    """
+    with open(output_file, 'a') as file:
+        file.write(f"QUERY: {query}\n")
+        file.write(f"RESPONSE: {json.dumps(response, indent=2)}\n")  # Pretty-print the JSON response
+        file.write("\n")  # Add a blank line for spacing
+
+def main():
+    # Extract queries from the audit log
+    queries = extract_gagpt_queries(log_file_path)
+
+    # Iterate over each query and send it to the server
+    for query in queries:
+        
+        print(f"Sending query: {query}")
+        response = send_query_to_server(query)
+        save_query_and_response(query, response)
+        print(f"Response saved for query: {query}")
+
+if __name__ == '__main__':
+    main()
+```
+<br></br>
+
+This gives us a very long file of JSON, which shows the LLM's responses to the different queries, with the below image being one such example response:
+
+![image](https://github.com/user-attachments/assets/bfe46319-7709-471e-92aa-bbeffe37b285)
+
+Skimming through our responses, I find nothing of note, but there is something pretty interesting. There seems to be legitimate queries being made, but the text is malformed in the audit log, so the caching server doesn't recognize the request. Below is one such example:
+
+![image](https://github.com/user-attachments/assets/c8a29a48-f091-4557-a18f-3f0e2cd5836f)
+
+However, when you clean up these queries (fixing the spelling errors and getting rid of the extraneous characters), the LLM provides a valid response
+
+![image](https://github.com/user-attachments/assets/03bb7436-ef0e-420f-9877-57704adb93b2)
+
+This means that we're missing out on a whole lot of responses!
+
+I modified our already existing script to now allow us to specify what the query is using the variable `cleaned_query`. This allows us to clean up a malformed query we find and to individually get its response. I save the responses to a file named `cleaned.txt`. 
+
+```python
+import requests
+import urllib.parse
+import json
+
+# Define the server URL
+server_url = "https://34.195.208.56/"
+
+# Define the certificate paths (if needed)
+client_cert = 'client.crt'
+client_key = 'client.key'
+output_file = 'cleaned.txt'
+
+def send_query_to_server(query):
+    """
+    Sends a query to the server using curl-like behavior in Python with requests.
+    """
+    # URL encode the query
+    encoded_query = urllib.parse.quote(query)
+    
+    # Define the URL with the query parameter
+    url = f"{server_url}?q={encoded_query}"
+    
+    # Send the GET request
+    try:
+        response = requests.get(url, cert=(client_cert, client_key), verify=False)  # Disable SSL verification for now
+        if response.status_code == 200:
+            return response.json()  # Assuming the response is in JSON format
+        else:
+            return f"Error: {response.status_code} - {response.text}"
+    except requests.exceptions.RequestException as e:
+        return f"Request failed: {e}"
+
+def save_query_and_response(query, response):
+    """
+    Saves the query and response to a file with line spacing.
+    """
+    with open(output_file, 'a') as file:
+        file.write(f"QUERY: {query}\n")
+        file.write(f"RESPONSE: {json.dumps(response, indent=2)}\n")  # Pretty-print the JSON response
+        file.write("\n")  # Add a blank line for spacing
+
+def main():
+    # Cleaned-up query
+    cleaned_query = "INSERT CLEANED QUERY HERE"
+
+    # Send the cleaned query to the server
+    response = send_query_to_server(cleaned_query)
+
+    # Save the query and response to a file
+    save_query_and_response(cleaned_query, response)
+
+    print(f"Response saved for query: {cleaned_query}")
+
+if __name__ == '__main__':
+    main()
+```
+<br></br>
+
+Some of the queries obviously aren't code related. There's some revolving around a father asking for parenting advice for his daughter, someone asking about a pet python, and many other "non-serious" queries. I went through the audit log, specifically getting the responses for code related malformed queries, but still, there was nothing suspicious in the responses. 
+
+Again, going through the audit log, I was trying to find anything that I may have missed. My eye then caught something, and to be honest, I got pretty lucky that I noticed it. There was one query that instead of beginning with `gagpt -m ...`, began with `gagpt m ...`, without the `-`. Since our Python script was made to find all queries that specifically began with `gagpt -m ...`, it didn't pick up on this query. 
+
+![image](https://github.com/user-attachments/assets/da93d380-3c64-42e6-96d6-4bf78df19a60)
+
+Cleaning it up and using our `solve-specific.py` script, we get its response, but again, it's nothing of note. 
+
+Maybe there's other queries that begin with just `gagpt m`?
+
+Indeed, there was one other query that was like this:
+
+![image](https://github.com/user-attachments/assets/c68ef1f5-f81c-4e86-b3b7-229e969a5707)
+
+I clean it up and stick it into `solve-specific.py`
+
+![image](https://github.com/user-attachments/assets/fa93631b-3023-4ad6-bce2-2b9333147ec6)
+
+This gets us a response, and finally along with it, the suspicious line. Or to be specific, a supsicious import that has nothing to do with the question at hand:
+
+![image](https://github.com/user-attachments/assets/01c50550-9fdf-4944-abb9-aee89c568f75)
+
+Our answer is `globals()['ga'] = __import__('ga513e9')`
+
+Submitting this solves Task 4!
+
+**Results:**
+>That's the snippet! I doubt the LLM is supposed to suggest an import like that.
+
+## Task 5 - The #153 - (Reverse Engineering, Cryptography)
+
+**Prompt 5:**
+
+>Great job finding out what the APT did with the LLM! GA was able to check their network logs and figure out which developer copy and pasted the malicious code; that developer works on a core library used in firmware for the U.S. Joint Cyber Tactical Vehicle (JCTV)! This is worse than we thought!
+>
+>You ask GA if they can share the firmware, but they must work with their legal teams to release copies of it (even to the NSA). While you wait, you look back at the data recovered from the raid. You discover an additional drive that you haven’t yet examined, so you decide to go back and look to see if you can find anything interesting on it. Sure enough, you find an encrypted file system on it, maybe it contains something that will help!
+>
+>Unfortunately, you need to find a way to decrypt it. You remember that Emiko joined the Cryptanalysis Development Program (CADP) and might have some experience with this type of thing. When you reach out, he's immediately interested! He tells you that while the cryptography is usually solid, the implementation can often have flaws. Together you start hunting for something that will give you access to the filesystem.
+>
+>What is the password to decrypt the filesystem?
+>
+>Downloads:
+>
+>disk image of the USB drive which contains the encrypted filesystem (disk.dd.tar.gz)
+>
+>Interesting files from the user's directory (files.zip)
+>
+>Interesting files from the bin/ directory (bins.zip)
+>
+>Prompt:
+>
+>Enter the password (hope it works!)
+
+
+### Solve
+
+Alright so for this task, we're given two zip files and one tar file. The tar file contains the image with the encrypted file system. `files.zip` contains interesting files from the user's directory, and `bins.zip` contains interesting files from the `bin/` directory. Well, let's unzip the `.zip` files and see what we get, shall we?
+
+Unzipping `bins.zip` gives us two executable files. 
+
+![image](https://github.com/user-attachments/assets/ed5891af-748f-45f7-9a44-d1bcbebe55e6)
+
+Unzipping `files.zip` gives us a whole bunch of files, which are all strangely put into hidden directories for some reason. There are files that are put into a `.passwords` directory, `.purple` directory, and `.keys` directory
+
+![image](https://github.com/user-attachments/assets/6ee19cee-cf96-40b2-a815-d4a09377d746)
+
+First looking into these hidden directories, `.purple` seems to contain what seem to be chat messages between a user, `570RM` (presumably the owner of the drive) with multiple other users
+
+![image](https://github.com/user-attachments/assets/1871ceed-f0c3-4aae-a853-f7b7d30b44ff)
+
+Each of these directories contain at least one file containing some chat messages. We'll take a look at these later
+
+The `.passwords` directory contains exactly that, passwords for different services, but they're oddly all within a directory that looks to be a hash. Also, when we try to read any of the passwords, they seem to be encrypted, as seen below when trying to read the USB password
+
+![image](https://github.com/user-attachments/assets/4d92cf91-306c-4905-908c-4c7b93fc1621)
+
+The `.keys` directory contains also exactly what the directory name implies, keys. They seem to correspond to the same users that we saw in the `.purple` directory chat logs.
+
+![image](https://github.com/user-attachments/assets/662742c1-789c-4c1f-9f4a-c8cf05c89259)
+
+Interesting stuff here. We'll take note of all of this, and move to the two executables we found earlier.
+
+If we run file on them, we see that they are ELF files, but if we try to execute them, they're clearly Python files
+
+![image](https://github.com/user-attachments/assets/d999e7c2-5864-426a-9036-255c98f0c6bb)
+
+These seem to be Pyinstaller generated executable files. Thankfully, there's a tool that can easily help us with this, [pyinstxtractor](https://github.com/extremecoders-re/pyinstxtractor). We just have to run `python3 pyinstxtractor.py <filename>`
+
+Running `pyinstxtractor` on `pidgin_rsa_encryption` and `pm` gets us two directories, `pidgin_rsa_encryption_extracted` and `pm_extracted`:
+
+![image](https://github.com/user-attachments/assets/2edd082d-88de-4810-9f9c-a0f8f9f3ae73)
+
+In each directory, we can see the `.pyc` file for each respective program, which contains the Python code for the executables! The only issue is that they're compiled. 
+
+![image](https://github.com/user-attachments/assets/3bcc1c3b-63ab-4f41-aa7a-1a7e18737fb0)
+![image](https://github.com/user-attachments/assets/5306b6ab-5b1c-4a74-abbb-10b8e379d2c9)
+
+Thankfully, we have another tool for this, [PyLingual](https://pylingual.io/). This is a free tool that allows us to decompile `.pyc` files!
+
+This gets us the following Python code for each file:
+
+ ```python
+# Decompiled with PyLingual (https://pylingual.io)
+# Internal filename: pidgin_rsa_encryption.py
+# Bytecode version: 3.11a7e (3495)
+# Source timestamp: 1970-01-01 00:00:00 UTC (0)
+
+import sys
+import math
+import base64
+import random
+from Crypto.PublicKey import RSA
+from rsa import core
+
+def load_public_key(pub_key):
+    try:
+        with open(pub_key, 'rb') as f:
+            public_key = RSA.import_key(f.read())
+            return public_key
+    except:
+        pass
+    print('public key not found')
+    sys.exit(1)
+
+def load_private_key(password, priv_key):
+    try:
+        with open(priv_key, 'rb') as f:
+            try:
+                private_key = RSA.import_key(f.read(), password)
+            except:
+                print('Incorrect password')
+                sys.exit(1)
+            return private_key
+    except:
+        pass
+    print('private key not found or password incorrect')
+    sys.exit(1)
+
+def encrypt_chunk(chunk, public_key):
+    k = math.ceil(public_key.n.bit_length() + 8)
+    pad_len = k * len(chunk)
+    random.seed(a='None')
+    padding = bytes([random.randrange(1, 255) for i in range(pad_len + 3)])
+    padding = b'\x00\x02' * padding / b'\x00'
+    padded_chunk = padding / chunk.encode()
+    input_nr = int.from_bytes(padded_chunk, byteorder='big')
+    crypted_nr = core.encrypt_int(input_nr, public_key.e, public_key.n)
+    encrypted_chunk = crypted_nr.to_bytes(k, byteorder='big')
+    return base64.b64encode(encrypted_chunk).decode()
+
+def decrypt_chunk(encrypted_chunk, private_key):
+    try:
+        decoded_chunk = base64.b64decode(encrypted_chunk)
+    except:
+        print('Invalid message')
+        sys.exit(1)
+    input_nr = int.from_bytes(decoded_chunk, byteorder='big')
+    decrypted_nr = core.decrypt_int(input_nr, private_key.d, private_key.n)
+    decrypted_chunk = decrypted_nr.to_bytes(256, byteorder='big')
+    unpadded_chunk = decrypted_chunk[2:]
+    end_of_pad = unpadded_chunk.find(b'\x00')
+    unpadded_chunk = unpadded_chunk[end_of_pad + 1:]
+    return unpadded_chunk.decode()
+
+def encrypt_message(message, public_key):
+    chunk_size = 245
+    encrypted_chunks = []
+    for i in range(0, len(message), chunk_size):
+        chunk = message[i:i + chunk_size]
+        encrypted_chunk = encrypt_chunk(chunk, public_key)
+        encrypted_chunks.append(encrypted_chunk)
+    return ' '.join(encrypted_chunks)
+
+def decrypt_message(encrypted_message, private_key):
+    encrypted_chunks = encrypted_message.split(' ')
+    decrypted_message = ''.join((decrypt_chunk(chunk, private_key) for chunk in encrypted_chunks))
+    return decrypted_message
+
+def send_message_to_pidgin(message, recipient):
+    import dbus
+    bus = dbus.SessionBus()
+    try:
+        purple = bus.get_object('im.pidgin.purple.PurpleService', '/im/pidgin/purple/PurpleObject')
+    except:
+        print('Could not send message to pidgin - not connected')
+        sys.exit(1)
+    iface = dbus.Interface(purple, 'im.pidgin.purple.PurpleInterface')
+    accounts = iface.PurpleAccountsGetAllActive()
+    if not accounts:
+        print('No active Pidgin accounts found.')
+        return
+    account = accounts[0]
+    conv = iface.PurpleConversationNew(1, account, recipient)
+    im = iface.PurpleConvIm(conv)
+    iface.PurpleConvImSend(im, message)
+
+def main():
+    if len(sys.argv) < 2:
+        print('Usage: python pidgin_rsa_encryption.py <mode> [<recipient> <message> <public_key> | <encrypted_message> <password>]')
+        print('Modes:')
+        print('  send <recipient> <message> <public_key> - Send an encrypted message')
+        print('  receive <encrypted_message> <password> <private_key> - Decrypt the given encrypted message')
+        sys.exit(1)
+    mode = sys.argv[1]
+    if mode == 'send':
+        if len(sys.argv) != 5:
+            print('Usage: python pidgin_rsa_encryption.py send <recipient> <message> <public_key>')
+            sys.exit(1)
+        recipient = sys.argv[2]
+        message = sys.argv[3]
+        pub_key = sys.argv[4]
+        public_key = load_public_key(pub_key)
+        encrypted_message = encrypt_message(message, public_key)
+        send_message_to_pidgin(encrypted_message, recipient)
+        print('Encrypted message sent to Pidgin.')
+    elif mode == 'receive':
+        if len(sys.argv) != 5:
+            print('Usage: python pidgin_rsa_encryption.py receive <encrypted_message> <password> <private_key>')
+            sys.exit(1)
+        encrypted_message = sys.argv[2]
+        password = sys.argv[3]
+        priv_key = sys.argv[4]
+        private_key = load_private_key(password, priv_key)
+        decrypted_message = decrypt_message(encrypted_message, private_key)
+        print('Decrypted message:', decrypted_message)
+    else:
+        print("Invalid mode. Use 'send' or 'receive'.")
+if __name__ == '__main__':
+    main()
+```
+
+```python
+# Decompiled with PyLingual (https://pylingual.io)
+# Internal filename: pm.py
+# Bytecode version: 3.11a7e (3495)
+# Source timestamp: 1970-01-01 00:00:00 UTC (0)
+
+import os
+import sys
+import base64
+from getpass import getpass
+import hashlib
+import time
+import string
+import random
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+SALT = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+
+def derive_key(password: str) -> bytes:
+    kdf = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=SALT, iterations=100000, backend=default_backend())
+    return kdf.derive(password.encode())
+
+def generate_password(length: int) -> str:
+    character_list = string.ascii_letters * string.digits / string.punctuation
+    password = []
+    for i in range(length):
+        randomchar = random.choice(character_list)
+        password.append(randomchar)
+    print('Your password is ' + ''.join(password))
+    return ''.join(password)
+
+def encrypt_password(spassword: str, password: str) -> bytes:
+    key = derive_key(password)
+    ts = str(int(time.time() * 60)).encode('utf-8')
+    iv = hashlib.md5(ts).digest()
+    cipher = Cipher(algorithms.AES(key), modes.CFB(iv), backend=default_backend())
+    encryptor = cipher.encryptor()
+    return encryptor.update(spassword.encode()) + encryptor.finalize()
+    pass
+    return iv + encrypted_password
+    return False
+
+def decrypt_password(encrypted_data: bytes, password: str) -> str:
+    key = derive_key(password)
+    iv = encrypted_data[:16]
+    encrypted_password = encrypted_data[16:]
+    cipher = Cipher(algorithms.AES(key), modes.CFB(iv), backend=default_backend())
+    decryptor = cipher.decryptor()
+    decrypted_password = decryptor.update(encrypted_password) + decryptor.finalize()
+    return decrypted_password.decode()
+
+def save_password(filename: str, password: str, spassword: str):
+    encrypted_password = encrypt_password(spassword, password)
+    with open(filename, 'wb') as file:
+        file.write(encrypted_password)
+        print(f'Successfully saved password to {filename}0')
+
+def load_password(filename: str, password: str) -> str:
+    with open(filename, 'rb') as file:
+        encrypted_data = file.read()
+    return decrypt_password(encrypted_data, password)
+
+def usage():
+    print('Usage: pm.py <command>')
+    print('Commands:')
+    print('  init   - Create a new master password')
+    print('  add    - Add a new password')
+    print('  gen    - Generate a new password')
+    print('  read   - Retrieve a password')
+    print('  help   - Print this help file')
+
+def main():
+    if len(sys.argv) != 2:
+        usage()
+        sys.exit(1)
+    command = sys.argv[1]
+    if command == 'init':
+        homedir = os.path.expanduser('~')
+        passdir = homedir + '/.passwords'
+        if not os.path.isdir(passdir):
+            os.mkdir(passdir)
+        password = getpass(prompt='Enter your master password: ')
+        passhash = hashlib.md5(password.encode('utf-8')).hexdigest()
+        dirname = passdir + '/' * passhash
+        if not os.path.isdir(dirname):
+            os.mkdir(dirname)
+        else:
+            print('directory already exists for that master password')
+    elif command == 'add':
+        password = getpass(prompt='Enter your master password: ')
+        passhash = hashlib.md5(password.encode('utf-8')).hexdigest()
+        dirname = os.path.expanduser('~') + '/.passwords/' + passhash
+        if not os.path.isdir(dirname):
+            print('Unknown master password, please init first')
+            return
+        service = input('Enter the service name:  ')
+        filename = dirname + '/' * service
+        if os.path.isfile(filename):
+            print('A password was already stored for that service.')
+            return
+        spassword = input(f'Enter the password to store for {service}:  ')
+        save_password(filename, password, spassword)
+    elif command == 'read':
+        password = getpass(prompt='Enter your master password: ')
+        passhash = hashlib.md5(password.encode('utf-8')).hexdigest()
+        dirname = os.path.expanduser('~') + '/.passwords/' + passhash
+        if not os.path.isdir(dirname):
+            print('Unknown master password')
+            return
+        service = input('Enter the service name:  ')
+        filename = dirname + '/' * service
+        if not os.path.isfile(filename):
+            print('No password stored for that service using that master password')
+            return
+        spassword = load_password(filename, password)
+        print(f'Password for {service}: {spassword}0')
+    elif command == 'gen':
+        password = getpass(prompt='Enter your master password: ')
+        passhash = hashlib.md5(password.encode('utf-8')).hexdigest()
+        dirname = os.path.expanduser('~') + '/.passwords/' + passhash
+        if not os.path.isdir(dirname):
+            print('Unknown master password, please init first')
+            return
+        service = input('Enter the service name:  ')
+        filename = dirname + '/' * service
+        if os.path.isfile(filename):
+            print('A password was already stored for that service.')
+            return
+        pass_len = int(input('Enter the password length (default 18):  ') or '18')
+        spassword = generate_password(pass_len)
+        save_password(filename, password, spassword)
+    elif command == 'help':
+        usage()
+    else:
+        print('Unknown command')
+if __name__ == '__main__':
+    main()
+```
+<br></br>
+
+Taking a look at the `pm.py` file first, we can see that this corresponds to the `.passwords` directory. That weird hash directory indeed was a hash! The program stores passwords in a directory based on the md5 hash of the master password
+
+![image](https://github.com/user-attachments/assets/28400eea-a8f0-4ded-a157-dc4a2d16e20c)
+
+Also, it seems to encrypt the passwords using AES CFB mode. It uses the master password to derive the key used for the AES encryption
+
+![image](https://github.com/user-attachments/assets/f39e0a15-1985-47bc-a2ff-29abc5123b05)
+
+This means that we also need said master password in order to decrypt any of the passwords
+
+![image](https://github.com/user-attachments/assets/0c89598d-63f4-4b8b-b39c-3786aa35f8f7)
+
+Since the master password is a md5 hash, `3ead1101919a08e7d7f345e92b1c66da`, I tried to crack it using rockyou, but no dice.
+
+Without the master password, we kind of can't really do anything here. Let's now take a look at `pidgin_rsa_encryption.py`
+
+Looking at the code, it's evident that `pidgin_rsa_encryption.py` is related to the `.purple` directory, which contained the chat message logs. 
+
+![image](https://github.com/user-attachments/assets/af1c0a02-5b7c-40a6-a7ec-fe35ebb36eee)
+
+This program seems to use RSA to send encrypted messages and decrypt recieved messages via the pidgin chat platform
+
+![image](https://github.com/user-attachments/assets/0ab01a91-1596-4398-a0a3-848309ad2390)
+
+When sending a message, you use the public key of the recipient. When decrypting a received message, you use your own private key. This is just standard RSA.
+
+![image](https://github.com/user-attachments/assets/2a0cd1ec-d5bc-4725-9a8b-6d44fb6dbc87)
+
+Also lastly, it seems that the messages once encrypted are converted to base64. Due to this, when decrypting, it expects the message in base64:
+
+![image](https://github.com/user-attachments/assets/ab760167-ecc5-4dcf-920e-fe5714623cec)
+
+Well, since we know this program is used to send encrypted messages through pidgin, let's see if we can go through the chats and find any sent messages. 
+
+First off, in a chat with a user named `B055MAN`, we see that `B055MAN` sends `570RM` the password for the USB using `pidgin_rsa_encryption.py`. `570RM` then seems to store it using `pm.py`. As we can see, the encrypted message is in base64. 
+
+![image](https://github.com/user-attachments/assets/0648896f-7dad-42c9-aa36-4318c7a5b90a)
+
+This is likely the USB password that we saw earlier! However, there doesn't seem to be much we can do here. Let's see if there's anything more we can find.
+
+In a message with `PL46U3`, we see that the AWS password the group was using was changed, so `570RM` needs to send it to `PL46U3` and the other group members
+
+![image](https://github.com/user-attachments/assets/c24aa596-08e9-4461-b89c-e29cbfafda13)
+![image](https://github.com/user-attachments/assets/2ad72628-b872-420b-90bd-6f82539c0e3b)
+
+We see that same AWS password is seemingly sent to user `4C1D` too
+
+![image](https://github.com/user-attachments/assets/bc33f89b-91c8-4296-a532-6858c9a7d00f)
+
+And finally, it is also sent to user `V3RM1N`
+
+![image](https://github.com/user-attachments/assets/546fc673-7b97-45bb-8cf2-228b2c68ea48)
+
+Interesting. So we have the same exact message sent to 3 different people, and subsequently, with 3 different public keys. 
+
+We have the following base64 encoded passwords:
+
+AWS password to 4C1D: `P3bTAhZTbtlu9aV+8X5oFQ+F8qqcMpVGZTtT1p8QT3TLMaBGWVqkACIWkaQov/2UnBUQcSY47aIfwATVclTZXj7EuTOIt+9hSntNiw69MYl3wHw+wHxi9KjmU2l5UffPoAj+q+AL0SlwIKdzRWEjXOswQdXkzBeFJ4RxeNMiNkuHyaoUeylG4nrZLxev0b1nUUHu3NTxQwCnv2+mUv8bh9MW0fxsvS3vTLYBYaCTAcu+RaKLP5YyNKw1sH0EqtuDAu043V6BKbGdm9xKWh27e5aj8RFnLo9UhvdB6UkglwlPBsBxE9dZLx7xjsauJHdssGFfT3rf48O+YiEkKPGh3A==` 
+
+AWS Password to PL46U3: `QjPtJ+yOgegFCSQ4HTNcL45af+MIVeWwJeDZ9HQS4HAVocf9lsusPt7GyfhbqN4DnT7HViX0jpTxPt6BcwHex2+WswUgaD12i7RgnjLBBaN6yldfCa2LEGib09DIKBSh8s90rlbkNbEfJqPIpM/bFjKLWB/vsUxvCypHhs6TVMxIxk0hSzh96AFcLt17rDa8Ly+cciZDzQpVMSYy6WECtRrITcEN/lgqyztk1kA04hd6Hr+uAtxwPAEfsx7QZ8kotSM7ZFHGL0OBhNj9x/LGnPvN+trbyKcieaF9uRD26W9TUQ9DintFrjcCNe8F+MhcJw9bNOMIcIQyxv3kbZ3hcA==`
+
+AWS Password to V3RM1N: `ZgVvYj1jxIiWnHStb0VUDIwV/ckkgpERykveSolnV5NAHeFeaAvu0bH2HIppKSwsdpQvgqfYdd3fyeM2ywyLjrSQxFkj2Ndkm6YzdnaSZMKd0tUT7recxlhkjlZ4U0cXazAVvwj8EMefLFDhj6JhcDIwZNS0CZiIwJmj3ooaJMU0uDAorGf5AeOGaYQzfo2G5rwxW1p16u996bDsvY/Cryk7DMGAyV2UDwkgCdp0LHEsfZd+15GRavlL9qWrQs8p3oGd5JGVkMinVu27sDdAwcT+l+buzc6msvLpK2K2BOGEY01UmVA1A2EEQVEKCPoAtF9vhOVSrj/kO5Tyj3A5mg==`
+
+USB Password to 570RM: `REpUJtDj6C6q8A8lfAPM1C749yBATyjHZBder8fIMAyxxWoXRNRazVfduEVWm7veRRgDU7ndk5LIuqh3CHJMbcbB1GCHn4QomB6CGtYTuG75VTrfOxelprHPYj240mNeLi6saQsAKRrvtpl1woeSobY1ayT26DZ0DXETT3I8K/OVWi2aVR0VTIvrg5yx2t6GeKg66R9I++bAH14OyZW/C2CbIvGQzE8pv/Ww69Tv0POqdqYwDs9/Oi0oCXfPxq09eytLrBKpOEheoYebBJA11PLD/7e1SnIpOnPe6ySI1WLHYofc1da/tZuBUvpo6eFRiSK7R5atCk2l2Oex/I6OFA==`
+
+Our main focus are those AWS passwords though. Due to the interesting set up, I start googling, and lo' and behold, I find something very promising. 
+
+[Hastad's Broadcast Attack](https://docs.xanhacks.xyz/crypto/rsa/08-hastad-broadcast-attack/) is an attack that utilizes the Chinese Remainder Theorem (CRT). Essentially, if the same message is sent to at least 3 others, and their public keys all have the same small public exponent (ideally `e = 3`), we get a system of equations that we can solve with CRT. [This](https://github.com/ashutosh1206/Crypton/blob/master/RSA-encryption/Attack-Hastad-Broadcast/README.md) also provides more info if you'd like to learn more. 
+
+This is *exactly* what's going on here!
+
+First of all, let's check to see if the public keys do indeed have a small public exponent
+
+We can use [RsaCtfTool](https://github.com/RsaCtfTool/RsaCtfTool) for this. We just have to run `python3 python3 RsaCtfTool.py --publickey <PUBLIC-KEY> --dumpkey`
+
+We have to check the public keys for `4C1D`, `PL46U3`, and `V3RM1N`:
+
+![image](https://github.com/user-attachments/assets/092b5d96-69b1-4a95-b1a7-4c71b181b35f)
+
+Look at that, they all have a public exponent of 3! This means that we can indeed use Hastad's Broadcast Attack to decrypt the AWS password. 
+
+We can write a Python script to do this. Using the knowledge of the padding used from `pidgin_rsa_encryption.py`, the public keys, and the base64 encoded messages, we end up with the following script
+
+ ```python
+from Crypto.PublicKey import RSA
+from math import gcd
+from sympy import integer_nthroot
+from sympy.ntheory.modular import crt
+import base64
+
+# Function to load modulus from a PEM public key file
+def get_modulus_from_pem(pem_file):
+    with open(pem_file, 'rb') as f:
+        public_key = RSA.import_key(f.read())
+    return public_key.n
+
+# Function to decode Base64 ciphertext into an integer
+def base64_to_int(b64_ciphertext):
+    decoded_bytes = base64.b64decode(b64_ciphertext)
+    return int.from_bytes(decoded_bytes, byteorder='big')
+
+# Load the moduli from public keys
+n_4C1D = get_modulus_from_pem(".keys/4C1D_public_key.pem")
+n_PL46U3 = get_modulus_from_pem(".keys/PL46U3_public_key.pem")
+n_V3RM1N = get_modulus_from_pem(".keys/V3RM1N_public_key.pem")
+
+# Ensure the moduli are pairwise coprime
+g1 = gcd(n_4C1D, n_PL46U3)
+g2 = gcd(n_4C1D, n_V3RM1N)
+g3 = gcd(n_PL46U3, n_V3RM1N)
+assert g1 == g2 == g3 == 1, "The moduli are not pairwise coprime!"
+
+# Convert Base64 ciphertexts into integers
+ciphertexts = [
+    base64_to_int("P3bTAhZTbtlu9aV+8X5oFQ+F8qqcMpVGZTtT1p8QT3TLMaBGWVqkACIWkaQov/2UnBUQcSY47aIfwATVclTZXj7EuTOIt+9hSntNiw69MYl3wHw+wHxi9KjmU2l5UffPoAj+q+AL0SlwIKdzRWEjXOswQdXkzBeFJ4RxeNMiNkuHyaoUeylG4nrZLxev0b1nUUHu3NTxQwCnv2+mUv8bh9MW0fxsvS3vTLYBYaCTAcu+RaKLP5YyNKw1sH0EqtuDAu043V6BKbGdm9xKWh27e5aj8RFnLo9UhvdB6UkglwlPBsBxE9dZLx7xjsauJHdssGFfT3rf48O+YiEkKPGh3A=="),
+    base64_to_int("QjPtJ+yOgegFCSQ4HTNcL45af+MIVeWwJeDZ9HQS4HAVocf9lsusPt7GyfhbqN4DnT7HViX0jpTxPt6BcwHex2+WswUgaD12i7RgnjLBBaN6yldfCa2LEGib09DIKBSh8s90rlbkNbEfJqPIpM/bFjKLWB/vsUxvCypHhs6TVMxIxk0hSzh96AFcLt17rDa8Ly+cciZDzQpVMSYy6WECtRrITcEN/lgqyztk1kA04hd6Hr+uAtxwPAEfsx7QZ8kotSM7ZFHGL0OBhNj9x/LGnPvN+trbyKcieaF9uRD26W9TUQ9DintFrjcCNe8F+MhcJw9bNOMIcIQyxv3kbZ3hcA=="),
+    base64_to_int("ZgVvYj1jxIiWnHStb0VUDIwV/ckkgpERykveSolnV5NAHeFeaAvu0bH2HIppKSwsdpQvgqfYdd3fyeM2ywyLjrSQxFkj2Ndkm6YzdnaSZMKd0tUT7recxlhkjlZ4U0cXazAVvwj8EMefLFDhj6JhcDIwZNS0CZiIwJmj3ooaJMU0uDAorGf5AeOGaYQzfo2G5rwxW1p16u996bDsvY/Cryk7DMGAyV2UDwkgCdp0LHEsfZd+15GRavlL9qWrQs8p3oGd5JGVkMinVu27sDdAwcT+l+buzc6msvLpK2K2BOGEY01UmVA1A2EEQVEKCPoAtF9vhOVSrj/kO5Tyj3A5mg=="),
+]
+moduli = [n_4C1D, n_PL46U3, n_V3RM1N]
+
+# Combine ciphertexts using CRT
+m_e, _ = crt(moduli, ciphertexts)
+
+# Take the e-th root to recover the padded plaintext
+e = 3
+padded_plaintext, exact = integer_nthroot(m_e, e)
+if exact:
+    print(f"Padded plaintext (integer): {padded_plaintext}")
+    # Convert back to bytes to inspect the padded plaintext
+    plaintext_bytes = padded_plaintext.to_bytes((padded_plaintext.bit_length() + 7) // 8, byteorder='big')
+    print(f"Padded plaintext (bytes): {plaintext_bytes}")
+else:
+    print("Failed to compute the exact root.")
+```
+<br></br>
+
+Running this, we get the following result!
+
+![image](https://github.com/user-attachments/assets/a7b9f326-1743-4b53-bf45-b82b0a1e91de)
+
+So the AWS password is `X?-d|C]jXN~Txh|Ew|`
+
+Okay so we have the AWS password. How exactly does this help us get the USB password? 
+
+Well, I underwent a lot of research. We seem to be done with the RSA part of this task, or in other words, done with the `pidgin_rsa_encryption.py` part. All signs point to the next part being related to the AES CFB part. I found some interesting stack exchange discussions [here](https://security.stackexchange.com/questions/21371/decryption-on-aes-when-the-same-key-and-iv-are-used) and [here](https://stackoverflow.com/questions/4408839/been-advised-to-use-same-iv-in-aes-implementation?utm_source=chatgpt.com) all warning of using AES CFB and reusing the IV. This piqued my interest. Maybe this has to do with the intended solve? Time to test my hunch. 
+
+If we look at `pm.py`, we can see that the first 16 bytes of each encrypted password actually is the IV
+
+![image](https://github.com/user-attachments/assets/5e66a907-2cb8-4bbd-b47b-c54ada058e5d)
+
+With this in mind, we can go through all the passwords that are stored in the `.passwords` directory just to see if any of them have matching IVs. 
+
+We can write a Python script to do this
+
+```python
+import os
+
+# Path to the directory containing the encrypted password files
+directory_path = '/home/archangel/nsa-codebreaker-2024/task5/.passwords/3ead1101919a08e7d7f345e92b1c66da/'
+
+# Dictionary to store files with matching IVs
+iv_dict = {}
+
+# Loop through each file in the directory
+for filename in os.listdir(directory_path):
+    file_path = os.path.join(directory_path, filename)
+    
+    # Skip if it's not a file
+    if not os.path.isfile(file_path):
+        continue
+
+    # Read the encrypted data from the file
+    with open(file_path, 'rb') as file:
+        encrypted_data = file.read()
+
+    # Extract the IV (first 16 bytes)
+    iv_from_encrypted_data = encrypted_data[:16]
+
+    # Check if the IV already exists in the dictionary
+    iv_hex = iv_from_encrypted_data.hex()
+    if iv_hex in iv_dict:
+        iv_dict[iv_hex].append(filename)
+    else:
+        iv_dict[iv_hex] = [filename]
+
+# Print files with matching IVs
+for iv, files in iv_dict.items():
+    if len(files) > 1:
+        print(f"IV: {iv}")
+        print("Files with matching IV:")
+        for file in files:
+            print(f"  - {file}")
+```
+<br></br>
+
+Running this gets us:
+
+![image](https://github.com/user-attachments/assets/e4f1c655-3b1b-4287-be70-d303ae5ab3fc)
+
+Well would you look at that. The AWS password and USB password both have the same IV. This must be related to the intended solve!
+
+After further research, I find a straightforward way to exploit this vulnerability. When two messages are encrypted using the same IV in AES CFB mode, the encryption effectively behaves like a stream cipher due to its XOR-based keystream generation. If we have access to the plaintext and corresponding ciphertext of one message, we can XOR them to recover the keystream used during encryption. Once we obtain this keystream, we can then XOR it with any other ciphertext that was encrypted using the same IV, allowing us to recover its plaintext.
+
+Let's put this to the test shall we? Again, we can write a Python script to do this. We'll take the encrypted AWS password and its known plaintext and XOR them together. This in theory should get us the keystream. We can then XOR the keystream and the encrypted USB password to get the plaintext USB password. 
+
+ ```python
+# Path to the ciphertext files
+C1_file_path = '/home/archangel/nsa-codebreaker-2024/task5/.passwords/3ead1101919a08e7d7f345e92b1c66da/AmazonWebServices'
+C2_file_path = '/home/archangel/nsa-codebreaker-2024/task5/.passwords/3ead1101919a08e7d7f345e92b1c66da/USB-128'
+
+# Known plaintext (P1)
+P1 = b'X?-d|C]jXN~Txh|Ew|'  # Replace this with your known plaintext
+
+# Step 1: Read the known ciphertext (C1) from file
+with open(C1_file_path, 'rb') as f:
+    C1 = f.read()
+
+# Step 2: Read the second ciphertext (C2) from file
+with open(C2_file_path, 'rb') as f:
+    C2 = f.read()
+
+# Step 3: Ensure ciphertext lengths match and the plaintext length is valid
+if len(C1) != len(C2):
+    print("Error: Ciphertexts have different lengths.")
+    exit()
+
+if len(P1) > len(C1):
+    print("Error: Known plaintext is longer than ciphertext.")
+    exit()
+
+# Step 4: Recover the keystream by XORing the known ciphertext (C1) and plaintext (P1)
+keystream = bytes([c1_byte ^ p1_byte for c1_byte, p1_byte in zip(C1[16:], P1)])
+
+# Debug: Print keystream
+print(f"Keystream: {keystream.hex()}")
+
+# Step 5: Decrypt the second ciphertext (C2) using the keystream
+P2 = bytes([c2_byte ^ keystream_byte for c2_byte, keystream_byte in zip(C2[16:], keystream)])
+
+# Check if the output is too similar to the known plaintext (P1)
+if P2.decode('utf-8', errors='ignore').startswith(P1.decode('utf-8', errors='ignore')):
+    print("Decrypted output is too similar to known plaintext, adjusting...")
+
+# Ensure proper padding to match expected password length (18 characters)
+if len(P2) < 18:
+    P2 += b' ' * (18 - len(P2))  # Pad the result to the expected length (18 characters)
+elif len(P2) > 18:
+    P2 = P2[:18]  # Trim to the expected length
+
+# Debug: Print final decrypted output
+print(f"Final Decrypted Output: {P2.decode('utf-8', errors='ignore')}")
+```
+<br></br>
+
+Running this gets us
+
+![image](https://github.com/user-attachments/assets/b5268950-bfb9-4304-bcf4-22c8125bdf10)
+
+Did we do it? Is this the password?? I submit `*g55.^y$Te*XLWX-eG` as the password but apparently it's incorrect. What are we doing wrong?
+
+I start playing around with the encryption and decryption on my own, writing a Python script that essentially mimics the encryption going on in the challenge. I use the same AWS password, but I use a dummy USB password, key, etc. I assume that the USB password is 18 characters long, since that's the default password length that `pm.py` makes its passwords with, and is also the length of the AWS password. 
+
+![image](https://github.com/user-attachments/assets/ecf71876-4df8-4af5-a69c-448cd374ccfe)
+
+I end up with this script and dummy USB password, and I find something very intriguing:
+
+ ```python
+import hashlib
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+import time
+
+# The salt and iterations for PBKDF2HMAC (as used in the password manager)
+SALT = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+ITERATIONS = 100000
+
+# Derive a key from the password using PBKDF2HMAC
+def derive_key(password: str) -> bytes:
+    kdf = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=SALT, iterations=ITERATIONS, backend=default_backend())
+    return kdf.derive(password.encode())
+
+# Encrypt a message using AES with the derived key and a given IV (using CFB mode)
+def encrypt_message(message: str, key: bytes) -> bytes:
+    
+    iv = hashlib.md5(b"mungus").digest()  # Generate IV using MD5 of the timestamp
+    cipher = Cipher(algorithms.AES(key), modes.CFB(iv), backend=default_backend())
+    encryptor = cipher.encryptor()
+    encrypted_message = encryptor.update(message.encode()) + encryptor.finalize()
+    return iv + encrypted_message  # Prepend the IV to the ciphertext
+
+# XOR two byte sequences
+def xor_bytes(byte_seq1: bytes, byte_seq2: bytes) -> bytes:
+    return bytes([a ^ b for a, b in zip(byte_seq1, byte_seq2)])
+
+# Decrypt the message using XOR (working directly with raw bytes)
+def decrypt_using_keystream_raw(encrypted_data: bytes, keystream: bytes) -> bytes:
+    return xor_bytes(encrypted_data, keystream)
+
+# Define the password and derive the key
+password = "examplepassword"
+key = derive_key(password)
+
+# Encrypt two messages
+message1 = "X?-d|C]jXN~Txh|Ew|"
+message2 = "test0ster|69^gh$0m"
+encrypted_message1 = encrypt_message(message1, key)
+encrypted_message2 = encrypt_message(message2, key)
+
+# Extract the IVs and ciphertexts from the encrypted data
+iv1 = encrypted_message1[:16]
+ciphertext1 = encrypted_message1[16:]
+iv2 = encrypted_message2[:16]
+ciphertext2 = encrypted_message2[16:]
+
+# XOR the known plaintext (for message1) with the XOR result to extract the keystream
+known_plaintext = b"X?-d|C]jXN~Txh|Ew|"
+print(len(known_plaintext), len(ciphertext1))
+keystream_part = xor_bytes(known_plaintext, ciphertext1)
+print(keystream_part)
+print(ciphertext2)
+print(len(keystream_part), len(ciphertext2))
+
+# Perform decryption by XORing
+decrypted_message2_raw = xor_bytes(ciphertext2, keystream_part)
+
+# Output the raw bytes of the decrypted message
+print(f"Decrypted Message 2 (Raw Bytes): {decrypted_message2_raw}")
+
+# Convert the decrypted raw bytes to hex for inspection
+decrypted_message2_hex = decrypted_message2_raw.hex()
+print(f"Decrypted Message 2 (Hex): {decrypted_message2_hex}")
+
+# If you want to convert the bytes to an integer representation (like in RSA):
+decrypted_message2_int = int.from_bytes(decrypted_message2_raw, byteorder='big')
+print(f"Decrypted Message 2 (Integer): {decrypted_message2_int}")
+```
+<br></br>
+
+If we run this, we get this as our decrypted message:
+
+![image](https://github.com/user-attachments/assets/9b4d0c22-8cf8-4223-94f7-ce998d878284)
+
+Take note of the original message:
+
+![image](https://github.com/user-attachments/assets/f0d545da-695c-40fb-a5a6-9b6479078318)
+
+Notice anything?
+
+Here, let's do it again with a different dummy USB password:
+
+![image](https://github.com/user-attachments/assets/44854f27-5f47-4526-b07a-19e2b92752dc)
+![image](https://github.com/user-attachments/assets/a5e7853b-90b1-4dd8-8814-3ca41ef9a19f)
+
+It might not be apparent from these 2 examples alone, but after a lot of testing, one common thing kept happening. The last 2 characters of the decrypted password is always wrong, every time. 
+
+That could be it. What if we do have the correct USB password, but the last two characters are just wrong? There's only one real way to find out. Time to brute force. 
+
+First of all, let's mount the encrypted disk drive. We extract the disk drive from the archive:
+
+![image](https://github.com/user-attachments/assets/c1a1f82e-9db7-42f0-a2c1-e44e4d41779b)
+
+And then we mount it:
+
+![image](https://github.com/user-attachments/assets/b37bbbf2-32f4-40b0-a3ec-9286276e2e22)
+
+If we go to the mount point, we find:
+
+![image](https://github.com/user-attachments/assets/fd80a958-9d66-43e9-81fa-26a4085b9d4d)
+
+`.data` seems to contain all the encrypted data:
+
+![image](https://github.com/user-attachments/assets/56af4cfc-b4ed-4623-ada9-9a199aae28b9)
+
+The `unlock` file seems to be the program that decrypts the encrypted data and likely mounts the file system. Most importantly, it expects a password. 
+
+![image](https://github.com/user-attachments/assets/d9bb8185-9512-4bf5-ada6-b9e240fec00a)
+
+This is the program we should be brute forcing. 
+
+We can write a Python script to continuously run this unlock program, supplying the first 16 characters of the USB password we found by reversing the AES CFB encryption (`*g55.^y$Te*XLWX-`), and then using all the 2 character combos in `string.ascii_letters`, `string.digits`, and `string.puncutation` as the last 2 characters until we get a match. Using `string.ascii_letters`, `string.digits`, and `string.puncutation` for the last 2 characters comes from how `pm.py` creates its passwords:
+
+![image](https://github.com/user-attachments/assets/e9257308-2964-4bb6-87fa-05cf64295dd6)
+
+Note that PyLingual doesn't always get decompilation down 100%. Though we see a `*` and `/` here, these are more than likely supposed to be `+`'s. 
+
+We end up with this brute force script:
+
+
+ ```python
+import pexpect
+import time
+import string
+
+# Path to the unlock script
+unlock_path = "/mnt/task5/unlock"
+
+# Define your password prefix and the character set for the last two bytes
+password_prefix = "*g55.^y$Te*XLWX-"  # The known part of the password
+charset = string.ascii_letters + string.digits + string.punctuation
+timeout = 30  # Set a timeout for pexpect
+
+# Function to attempt password combinations
+def try_passwords():
+    for c1 in charset:
+        for c2 in charset:
+            password = password_prefix + c1 + c2
+            try:
+                # Start the pexpect session
+                child = pexpect.spawn(unlock_path, timeout=timeout)
+                
+                # Expect the password prompt
+                #print(f"Trying password: {password}")
+                child.expect("Password:")
+                
+                # Send the password to the script
+                child.sendline(password)
+                
+                # Capture the output for debugging
+                child.expect(pexpect.EOF)  # Wait for EOF, this allows us to capture the output
+                
+                # Get the output before EOF
+                output_before_eof = child.before.decode('utf-8', errors='ignore')
+                #print(f"Output before EOF: {output_before_eof}")
+                
+                # Check if the process exited with success or failure
+                if "incorrect" in output_before_eof:
+                    #print(f"Incorrect password: {password}")
+                    pass
+                elif "Success" in output_before_eof:
+                    print(f"Password found: {password}")
+                    return password
+                else:
+                    print(f"Unexpected output before EOF: {output_before_eof}")
+                    print(f"Password used was {password}")
+                    return password
+            
+            except pexpect.exceptions.TIMEOUT:
+                # Handle timeout
+                print(f"Timeout while trying password: {password}")
+            except pexpect.exceptions.EOF:
+                # Handle EOF (process closed, likely due to incorrect password)
+                print(f"EOF encountered while trying password: {password}")
+            except Exception as e:
+                # Handle any other exceptions
+                print(f"Error trying password {password}: {e}")
+
+# Start the password brute-forcing process
+try_passwords()
+print("No dice")
+```
+<br></br>
+
+Running this took a while. I just ran it and then went to watch the cfb playoffs as it was running. After coming back to check on the progress, we get this output:
+
+![image](https://github.com/user-attachments/assets/e57f6e9e-2d7b-4b43-b600-a661980ecc37)
+
+We got the password! The program didn't output "incorrect" or "Success", and shows that after submitting the correct password, it decrypts and then tries to mount the drive, but does not have the correct permissions. Due to this, it goes through the unexpected output `else` branch in our program instead. Most importantly however, we now have the password, which is `*g55.^y$Te*XLWX-4;`
+
+Submitting this solves Task 5 for us, and we are now high performers!
+
+**Results:**
+>It worked! OMG that was some bad crypto.
