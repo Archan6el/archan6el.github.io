@@ -47,7 +47,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
 The request went through alright, so now we have to find what causes a buffer overflow. At first, we assumed it was the body in a HTTP POST request, but that led nowhere. 
 
-After experimenting with the HTTP header, we eventually found that a path length longer than 140 bytes will result in an overflow, as evidenced by our script below. 
+After experimenting with the HTTP header, we eventually found that specifying a path with a file name length longer than 140 bytes will result in an overflow, as evidenced by our script below. 
 
 ```python
 import socket
@@ -316,11 +316,11 @@ LAB_00403648:
 
 There's nothing here that immediately stands out, so the function that the overflow occurs in is likely called from within this function. 
 
-`parse_http_header_line` calls many functions, so there's a lot to go through. Instead, I just go to the Data Type Manager and try to search for char arrays. 
+`parse_http_header_line` calls many functions, so there's a lot to go through. Instead, I just go to the Data Type Manager and try to search for char arrays, since that's likely the buffer that is being overflowed
 
 ![Screenshot](images/Screenshot11.png)
 
-There's an interesting char array that I find, which leads us to a new function. 
+There's an interesting char array that I find, `acStack_b0`, which leads us to a new function. 
 
 After analyzing, I name it `resolve_file_and_serve` based on what the function seems to do. The function is located at `0x00406068`. 
 
@@ -459,7 +459,7 @@ The function executes, and hits the return, which will return us back to `parse_
 
 From here, it will then segfault
 
-![Screenshot](images/Screenshot01.png)
+![Screenshot](images/Screenshot10.png)
 
 This seems to be some pretty good evidence, but for a further check, I set a breakpoint at the `strcpy` call that has the 128 byte char buffer as the destination at the line, `strcpy(acStack_b0,local_30[0]);`
 
@@ -826,7 +826,7 @@ This is huge. It loads an address of a function of our choosing into `$t9` and e
 
 There is one thing you might be worried about. Does the gadget not load the parameter into `$s0` *after* it jumps to / executes the function at `$t9`? Or in other words, isn't the parameter not yet ready for the function call?
 
-Since this is MIPS, this actually *isn't* a problem. This is due to MIPS' delay slot feature. It's essentially a feature in which a instruction slot is executed without the effects of a preceding instruction. So in our gadget, `lw $a0, 0($s0)` is a delay slot. So our parameter actually *will* be ready. 
+Since this is MIPS, this actually *isn't* a problem. This is due to MIPS' [delay slot](https://en.wikipedia.org/wiki/Delay_slot) feature. It's essentially a feature in which a instruction slot is executed without the effects of a preceding instruction. So in our gadget, `lw $a0, 0($s0)` is a delay slot. So our parameter actually *will* be ready. 
 
 With all of this in mind, it's time to write our exploit script. Our payload is essentially going to be just the file path part of our HTTP request
 
@@ -888,3 +888,5 @@ If we run a listener with `nc -nvlp 9696` and run our script, we get a reverse s
 ![Screenshot](images/Screenshot08.png)
 
 ![Screenshot](images/Screenshot09.png)
+
+This router has been successfully pwned!
