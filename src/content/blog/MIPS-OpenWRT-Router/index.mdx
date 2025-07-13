@@ -14,7 +14,7 @@ Refer to [setup.md](https://github.com/Archan6el/MIPS-Router-Exploit-RCE-Writeup
 
 ## "Fuzzing"
 
-The only prior info we had of the router was that it was running a vulnerable version of http, and something about a buffer overflow. To test this, we created a simple Python script to send HTTP GET or POST requests. 
+The only prior info we had of the router was that it was running a vulnerable version of `uhttpd` webserver, and something about a buffer overflow. To test this, we created a simple Python script to send HTTP GET or POST requests. 
 
 ```python
 import socket
@@ -47,7 +47,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
 The request went through alright, so now we have to find what causes a buffer overflow. At first, we assumed it was the body in a HTTP POST request, but that led nowhere. 
 
-After experimenting with the HTTP header, we eventually found that specifying a path with a file name length longer than 140 bytes will result in an overflow, as evidenced by our script below. 
+After experimenting with the HTTP header, we eventually found that specifying a path with a file name length longer than 140 bytes will result in an overflow, as evidenced by our script below, which uses a file name that consists of 140 A's. 
 
 ```python
 import socket
@@ -84,7 +84,7 @@ Now we can start making an exploit
 
 ## Finding where the Buffer Overflow Occurs
 
-Before we start making the exploit though, let's try to find and understand where and why this error is occuring. In the above screenshot, we can see that we are at `0x403648` when the segfault occurs. We can actually find this exact area in the code through Ghidra. 
+Before we start making the exploit though, let's try to find and understand where and why this error is occuring. In the above screenshot, we can see that we are at `0x403648` when the segfault occurs. We can actually find this exact area in the code through Ghidra. This is due to the fact that PIE is disabled on the `uhttpd` binary, which as mentioned before, is the program that contains the buffer overflow vulnerability. 
 
 Mounting the image that QEMU is using, `root.ext4`, with `sudo mount -o loop root.ext4 /mnt/rootfs`, we can copy out the `uhttpd` binary.
 
@@ -316,7 +316,7 @@ LAB_00403648:
 
 There's nothing here that immediately stands out, so the function that the overflow occurs in is likely called from within this function. 
 
-`parse_http_header_line` calls many functions, so there's a lot to go through. Instead, I just go to the Data Type Manager and try to search for char arrays, since that's likely the buffer that is being overflowed
+`parse_http_header_line` calls many functions, so there's a lot to go through. Instead, I just go to the Data Type Manager and try to search for char arrays, since that's likely the buffer that is being overflowed. 
 
 ![Screenshot](images/Screenshot11.png)
 
@@ -324,7 +324,7 @@ There's an interesting char array that I find, `acStack_b0`, which leads us to a
 
 After analyzing, I name it `resolve_file_and_serve` based on what the function seems to do. The function is located at `0x00406068`. 
 
-What is particularly interesting is the buffer of size 128, and the many calls to `strcpy` that happens in this function. If we check its references, it's only called by one other function, which is `parse_http_header_line`. This could be it. 
+What is particularly interesting is the buffer of size 128, and the many calls to `strcpy` that happens in this function. If we check its references, it's only called by one other function, which is `parse_http_header_line`. This could be where the vulnerability occurs...
 
 ```c
 /* WARNING: Globals starting with '_' overlap smaller symbols at the same address */
@@ -439,7 +439,7 @@ void resolve_file_and_serve(int param_1)
 }
 ```
 
-`resolve_file_and_serve` also contains some of the output we see after the overflow, specifically at the line `FUN_00403038(param_1,0x194,"Not Found","The requested URL %s was not found on this server.")`
+`resolve_file_and_serve` also contains some of the output we see `uhttpd` give us after the overflow, specifically at the line `FUN_00403038(param_1,0x194,"Not Found","The requested URL %s was not found on this server.")`
 
 ![Screenshot](images/Screenshot12.png)
 
@@ -449,7 +449,7 @@ I set breakpoints in gdb at the call to `resolve_file_and_serve` in `parse_http_
 
 Let's walk through it. 
 
-If we send our HTTP request with a file name that will cause an overflow, we hit our breakpoint for the call to `resolve_file_and_serve` from within `parse_http_header_line`, and we can step into `resolve_file_and_serve`. 
+If we send our HTTP request with a file name that will cause an overflow, we hit our breakpoint for the call to `resolve_file_and_serve` from within `parse_http_header_line`, and we can step into it. 
 
 ![Screenshot](images/Screenshot13.png)
 
