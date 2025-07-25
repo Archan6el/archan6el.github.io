@@ -1,5 +1,5 @@
 ---
-title: 'Reversing and Exploiting a Vulnerable MIPS OpenWRT Router'
+title: 'Reversing and Exploiting a Vulnerable OpenWRT Router'
 description: 'Writeup of reverse engineering and exploiting a vulnerable MIPS OpenWRT Router as part of an extra challenge for a Summer internship program'
 date: 2025-06-16
 tags: ['Reverse Engineering', 'Vulnerability Research', 'Binary Exploitation']
@@ -8,13 +8,17 @@ authors: ['Archan6el']
 
 In this write up, we will go over reverse engineering and exploiting a MIPS OpenWRT router in order to get RCE and a reverse shell. 
 
-## Setup
+## Context / Setup
 
-Refer to [setup.md](https://github.com/Archan6el/MIPS-Router-Exploit-RCE-Writeup/blob/main/setup.md) 
+Refer to [setup.md](https://github.com/Archan6el/MIPS-Router-Exploit-RCE-Writeup/blob/main/setup.md) if you want to see some of the setup for this.
+
+For context, this was kindly given to us as an extra challenge as part of a Summer internship program. 
+
+It's an OpenWRT router image that is emulated using QEMU. To aid in debugging, we’re running a GDB server inside the emulated environment and connecting to it from our host machine.
 
 ## "Fuzzing"
 
-The only prior info we had of the router was that it was running a vulnerable version of `uhttpd` webserver, and something about a buffer overflow. To test this, we created a simple Python script to send HTTP GET or POST requests to the website running on the router. 
+The only prior info we had of the router was that it was running a vulnerable version of `uhttpd` webserver and something about a buffer overflow. To test this, we created a simple Python script to send HTTP GET or POST requests to the website running on the router. 
 
 ```python
 import socket
