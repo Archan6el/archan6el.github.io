@@ -796,7 +796,7 @@ We can just find system in here and get the exact address. In our case, it turns
 
 ![Screenshot](images/Screenshot07.png)
 
-Okay great, we have system, but now we have to give it a parameter. This is actually realtively straight forward since we can basically write whatever we want to the stack due to the buffer overflow, so we can literally just write the parameter we want to use by adding it to our final payload. 
+Okay great, we have system, but now we have to give it a parameter. This is actually relatively straight forward since we can basically write whatever we want to the stack due to the buffer overflow, so we can literally just write the parameter we want to use by adding it to our final payload. 
 
 In a real world scenario, you would not have shell access to the router, so `/bin/sh` isn't good enough. We can try a reverse shell though. 
 
@@ -828,7 +828,7 @@ Walking through this, it loads a word (4 bytes) at `($sp + 0xa4)` into the `$ra`
 
 This is huge. It loads an address of a function of our choosing into `$t9` and executes it, and also uses a parameter of our choosing on the stack, which should be pointed to by an address at `$s0`. Basically, all we have to do is organize the stack correctly. 
 
-There is one thing you might be worried about. Does the gadget not load the parameter into `$s0` *after* it jumps to / executes the function at `$t9`? Or in other words, isn't the parameter not yet ready for the function call?
+There is one thing you might be worried about. Does the gadget not load the parameter into `$a0` *after* it jumps to / executes the function at `$t9`? Or in other words, isn't the parameter not yet ready for the function call?
 
 Since this is MIPS, this actually *isn't* a problem. This is due to MIPS' [delay slot](https://en.wikipedia.org/wiki/Delay_slot) feature. It's essentially a feature in which a instruction slot is executed without the effects of a preceding instruction. So in our gadget, `lw $a0, 0($s0)` is a delay slot. So our parameter actually *will* be ready. 
 
