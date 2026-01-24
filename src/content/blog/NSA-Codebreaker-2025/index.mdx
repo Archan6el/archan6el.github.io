@@ -1169,7 +1169,7 @@ Basically, there are variables containing brainrot strings, and variables contai
 
 Whatever function is being called, my assumption was that it is somehow using the brainrot strings to deobfuscate the obfuscated blobs
 
-Going through the functions in Binja, we are able to find a likely culprit
+Going through the functions in Binja, we are able to find a likely culprit. I discerned this since the function signature matched, and also, it's pretty obvious that it's performing some kind of XOR logic
 
 I called the function `potential_deobf`
 
@@ -1259,7 +1259,167 @@ Running this results in:
 .bss_secure_buffer
 ```
 
-Ok interesting, these blobs are deobfuscating into what appears to be the names of sections of the program itself. Seems like some more analysis is in order. 
+Ok interesting, these blobs are deobfuscating into what appears to be the names of sections of the program itself 
+
+#### Understanding where the Deobfuscation Comes From
+
+Before we move on, one thing that was puzzling was that the deobfuscation function has no references, both in Binja and Ghidra. I knew the malware was trying to hide how it was calling it, but it was odd that I couldn't find how exactly the malware was getting around to calling it in the first place. Ghidra ended up helping me figure out how the malware is doing this, and what the `.init.checksum.vjag~oel2` section is used for. 
+
+Ghidra disassembled the binary differently, and instead of treating the function calls to what we assume to be the deobfuscation function by treating the first 8 bytes of a string as a memory address, as shown below
+
+```c
+r14_1 = (*"to griddy dance because this man…")[0].q
+
+...
+
+if (r14_1(&brainrot2, 0x49, r15_3, 0x13) != 0)
+    goto cooked
+```
+
+It treats it as a `DAT` which is used as a function pointer. In our case it is named `DAT_001231c8`
+
+```c
+pcVar4 = DAT_001231c8;
+if (__ptr == (undefined8 *)0x0) goto LAB_0010327e;
+*__ptr = CONCAT44(uStack_144,local_148);
+__ptr[1] = CONCAT44(uStack_13c,uStack_140);
+*(uint *)((long)__ptr + 0xf) = CONCAT31((undefined3)uStack_138,uStack_13c._3_1_);
+iVar8 = (*pcVar4)(&local_e8,0x49,__ptr,0x13);
+```
+
+If we look at `DAT_001231c8` in Ghidra to see what the address is so that we can figure out what function it's pointing to, it's just all 0 bytes. This means it gets filled in at runtime
+
+We find that `DAT_001231c8` gets filled in with a function that I name `fill_in_DAT`, which is called in `main`
+
+```c
+if ((iVar8 != 0) || (iVar8 = fill_in_DAT(*param_2,__ptr,&DAT_001231c8,&local_170), iVar8 != 0))
+```
+
+```c
+
+undefined4 fill_in_DAT(undefined8 param_1,undefined8 param_2,void **param_3,undefined8 *param_4)
+
+{
+  undefined8 uVar1;
+  long lVar2;
+  int iVar3;
+  void *__dest;
+  undefined4 uVar4;
+  void *__ptr;
+  long in_FS_OFFSET;
+  FILE *local_50;
+  void *local_48;
+  undefined8 local_40;
+  long local_38;
+  long local_30;
+  
+  local_30 = *(long *)(in_FS_OFFSET + 0x28);
+  local_50 = (FILE *)0x0;
+  local_48 = (void *)0x0;
+  local_40 = 0;
+  local_38 = 0;
+  iVar3 = open_file(&local_50,"r",param_1);
+  if ((iVar3 == 0) &&
+     (iVar3 = read_into_memory(local_50,&local_48,&local_40), __ptr = local_48, iVar3 == 0)) {
+    uVar4 = 1;
+    iVar3 = FUN_00105830(param_2,local_48,local_40,&local_38);
+    lVar2 = local_38;
+    if ((iVar3 != 0) ||
+       ((local_38 == 0 ||
+        (__dest = mmap((void *)0x0,*(size_t *)(local_38 + 0x20),3,0x22,-1,0), __ptr = local_48,
+        __dest == (void *)0xffffffffffffffff)))) goto LAB_00105982;
+    memcpy(__dest,(void *)(*(long *)(lVar2 + 0x18) + (long)local_48),*(size_t *)(lVar2 + 0x20));
+    iVar3 = mprotect(__dest,*(size_t *)(lVar2 + 0x20),5);
+    if (iVar3 == 0) {
+      uVar1 = *(undefined8 *)(lVar2 + 0x20);
+      *param_3 = __dest;
+      *param_4 = uVar1;
+      uVar4 = 0;
+      __ptr = local_48;
+      goto LAB_00105982;
+    }
+    munmap(__dest,*(size_t *)(lVar2 + 0x20));
+  }
+  uVar4 = 1;
+  __ptr = local_48;
+LAB_00105982:
+  if (__ptr != (void *)0x0) {
+    free(__ptr);
+  }
+  if (local_50 != (FILE *)0x0) {
+    fclose(local_50);
+  }
+  if (local_30 != *(long *)(in_FS_OFFSET + 0x28)) {
+                    /* WARNING: Subroutine does not return */
+    __stack_chk_fail();
+  }
+  return uVar4;
+}
+```
+
+What this function is doing is that it is loading a named ELF section from a file, maps it into executable memory, and stores a function pointer to the start of that section. The function pointer in our case being `DAT_001231c8` 
+
+We are only given this one binary, so we can assume that the ELF it is getting the section from is itself. Now the question is what is the section? Well, it's `.init.checksum.vjag~oel2`
+
+Okay that's not entirely true, it's actally `.init.checksum.validation`, it appears that our deobfuscation wasn't completely perfect, but looking at the sections in Ghidra (or `readelf`), that's the only section that makes sense considering our partial deobfuscation. 
+
+Now it may sound weird that we have a function pointer pointing to a section, as opposed to an actual function, but this actually works assuming that the section starts with a function. The function pointer, when invoked, will just execute that first function
+
+Well, is there a function at `.init.checksum.validation`? 
+
+We have to force Ghidra to disassemble the instructions, but indeed, `.init.checksum.validation` begins with
+
+```c
+undefined8 UndefinedFunction_0012309d(long param_1,long param_2,long param_3,long param_4)
+
+{
+  undefined8 uVar1;
+  int iStack_c;
+  
+  if ((param_1 == 0) || (param_3 == 0)) {
+    uVar1 = 1;
+  }
+  else {
+    for (iStack_c = 0; (ulong)(long)iStack_c < param_4 - 1U; iStack_c = iStack_c + 1) {
+      *(byte *)(param_3 + iStack_c) =
+           *(byte *)(param_3 + iStack_c) ^
+           *(byte *)(param_1 + (ulong)(long)iStack_c % (param_2 - 1U));
+    }
+    uVar1 = 0;
+  }
+  return uVar1;
+}
+```
+
+I showed it before in Binja, but we can also find the deobfuscation function in Ghidra. Let's compare this function from `.init.checksum.validation` to that
+
+```c
+
+undefined8 deobfuscate(long param_1,long param_2,long param_3,long param_4)
+
+{
+  ulong uVar1;
+  
+  if ((param_1 != 0) && (param_3 != 0)) {
+    uVar1 = 0;
+    if (param_4 != 1) {
+      do {
+        *(byte *)(param_3 + uVar1) =
+             *(byte *)(param_3 + uVar1) ^ *(byte *)(param_1 + uVar1 % (param_2 - 1U));
+        uVar1 = uVar1 + 1;
+      } while (param_4 - 1U != uVar1);
+    }
+    return 0;
+  }
+  return 1;
+}
+```
+
+Notice anything? They're exactly the same, essentially. So this is why we couldn't find any references to the deobfuscation function we found. It's because the malware is assembling a function pointer to `.init.checksum.validation`, which contains the actual deobfuscation function
+
+Now another question that might arise is why have both. Why have a deobfuscation function for everyone to see, but is never invoked, and then have the exact same function hidden in `.init.checksum.validation`. Perhaps it was intentional to help static analyzers of this malware, or perhaps it's because somewhere, the malware uses the non-hidden function to write to `.init.checksum.validation`
+
+Regardless of the reason, now we understand how exactly the malware is deobfuscating, and the purpose of the `.init.checksum.validation` section. Now, on to the next two. 
 
 #### Rev harder
 
