@@ -1415,11 +1415,13 @@ undefined8 deobfuscate(long param_1,long param_2,long param_3,long param_4)
 }
 ```
 
-Notice anything? They're exactly the same, essentially. So this is why we couldn't find any references to the deobfuscation function we found. It's because the malware is assembling a function pointer to `.init.checksum.validation`, which contains the actual deobfuscation function
+Notice anything? They're essentially exactly the same. So this is why we couldn't find any references to the deobfuscation function we found. It's because the malware is assembling a function pointer to `.init.checksum.validation`, which contains the actual deobfuscation function it uses
 
-Now another question that might arise is why have both. Why have a deobfuscation function for everyone to see, but is never invoked, and then have the exact same function hidden in `.init.checksum.validation`. Perhaps it was intentional to help static analyzers of this malware, or perhaps it's because somewhere, the malware uses the non-hidden function to write to `.init.checksum.validation`
+This also explains why the first obfuscated blob was deobfuscated in `main`, instead of using the deobfuscation function. It's because the pointer to the deobfuscation function (or to the `.init.checksum.validation` section to be exact) hadn't been set up yet. After the function pointer is set up, the deobfuscation function is utilized for all subsequent use cases. 
 
-Regardless of the reason, now we understand how exactly the malware is deobfuscating, and the purpose of the `.init.checksum.validation` section. Now, on to the next two. 
+Now another question that might arise is why have both. Why have a deobfuscation function for everyone to see, but is never invoked, and then have the exact same function hidden in `.init.checksum.validation`. Perhaps it was intentional by the devs to help static analyzers of this malware, or it was a compiler artifact, or perhaps it's because somewhere, the malware uses the non-hidden function to write to `.init.checksum.validation`
+
+Regardless of the reason, now we understand how exactly the malware is deobfuscating, and the purpose of the `.init.checksum.validation` section. Now, on to understanding the purpose of the next two sections. 
 
 #### Rev harder
 
