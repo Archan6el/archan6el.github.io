@@ -1935,6 +1935,15 @@ It also extracts the contents of what was in the third obfuscated blob
 
 Which we now know to be `.bss_secure_buffer`
 
+In both above calls, `r15_3` is the result of the deobfuscation function call, storing the now deobfuscated string. Below is one example when deobfuscating the second obfuscated blob
+
+```c
+000030aa          *r15_3 = obfuscated_blob2
+000030b7          *(r15_3 + 0xa) = obfuscated_blob2
+000030b7          
+000030c1          if (r14_1(&brainrot1, 0x50, r15_3, 0x1a) != 0)
+```
+
 It performs the deobfuscation logic that we found earlier with the content in these 2 sections as input
 
 ```c
