@@ -1551,7 +1551,13 @@ Firstly, we find a function that appears to extract section contents of a progra
 00005be2      noreturn
 ```
 
-So it appears that the malware has the section names obfuscated, it deobfuscates the name with the function we found, then extracts what's in that section. The question is what does it do with the data now that it's extracted
+The program it is extracting these sections from is itself, because if we look at the call to the function, similar to the `fill_in_DAT` function, it passes a pointer to `argv`, which is `argv[0]`. In otherwords, the name of the program itself
+
+```c
+if (extract_resource_from_file(*argv, r15_3, &var_180, &var_178) != 0)
+```
+
+So it appears that the malware has the section names obfuscated, it deobfuscates the name with the function we found, then extracts what's in that section from itself. The question is what does it do with the data now that it's extracted
 
 Eventually, we hit what appears to be the jackpot
 
@@ -1675,7 +1681,7 @@ We have a function that tries to perform a `zlib` decompression on the passed in
 000039c2      noreturn
 ```
 
-Once the `zlib` decompression occurs, it takes the result (which I assumed to be some sort of malware) and tries to run it in two ways based on a certain condition
+Once the `zlib` decompression occurs, it takes the result, which is some sort of executable or shared library, and tries to run it in two ways based on a certain condition
 
 ```c
 if (memfd_dlopen_or_execve_malware(var_190, var_188) != 0)
