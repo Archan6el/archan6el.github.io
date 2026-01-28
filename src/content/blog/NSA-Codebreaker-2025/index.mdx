@@ -1399,11 +1399,15 @@ undefined4 FUN_00105830(char *param_1,int *param_2,undefined8 param_3,uint **par
 
 So what `fill_in_DAT` is doing is that it reads an ELF file into memory, searches its section headers for a specific section name (with `FUN_00105830`), maps the corresponding bytes into executable memory, and stores a function pointer to the start of that mapped region. In our case, that function pointer is `DAT_001231c8`
 
-We are only given this one binary, so we can assume that the ELF it is getting the section from is itself. Now the question is what is the section? Well, it's `.init.checksum.vjag~oel2`. If we look at the call to `fill_in_DAT` again
+The ELF that it is searching through to find the section is itself. If we look at the call to `fill_in_DAT` again 
 
 ```c
 fill_in_DAT(*param_2,__ptr,&DAT_001231c8,&local_170)
 ```
+
+`*param_2` is what is passed in as the file to search through. This is being called in main, and `param_2` in main is the array `argv`, and `argv[0]` is the name of the executable itself, which is what the pointer `*param_2` is pointing to
+
+Now the question is what is the section? Well, it's `.init.checksum.vjag~oel2`. 
 
 `__ptr` is the second parameter, which we already stated is the section it is looking for. Ghidra makes the instructions look a little more hectic so I won't paste it here, but `__ptr` essentially contains the contents of the first obfuscated blob deobfuscation that we looked at in Binja
 
