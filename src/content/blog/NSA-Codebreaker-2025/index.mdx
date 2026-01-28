@@ -1287,7 +1287,7 @@ __ptr[1] = CONCAT44(uStack_13c,uStack_140);
 iVar8 = (*pcVar4)(&local_e8,0x49,__ptr,0x13);
 ```
 
-If we look at `DAT_001231c8` in Ghidra to see what the address is so that we can figure out what function it's pointing to, it's just all 0 bytes. This means it gets filled in at runtime
+If we look at `DAT_001231c8` in Ghidra to see what address it stores so that we can figure out what function it's pointing to, it's just all 0 bytes. This means it gets filled in at runtime
 
 We find that `DAT_001231c8` gets filled in with a function that I name `fill_in_DAT`, which is called in `main`
 
@@ -1357,15 +1357,73 @@ LAB_00105982:
 }
 ```
 
-What this function is doing is that it is loading a named ELF section from a file, maps it into executable memory, and stores a function pointer to the start of that section. The function pointer in our case being `DAT_001231c8` 
+There is also a function called in here, `FUN_00105830`, which validates to see if the input is an ELF and searches for a certain section based on its name. The section name it is looking for is passed in as `param_2` to `fill_in_DAT`, and is `param_1` for `FUN_00105830`
 
-We are only given this one binary, so we can assume that the ELF it is getting the section from is itself. Now the question is what is the section? Well, it's `.init.checksum.vjag~oel2`
+```c
+undefined4 FUN_00105830(char *param_1,int *param_2,undefined8 param_3,uint **param_4)
 
-Okay that's not entirely true, it's actally `.init.checksum.validation`, it appears that our deobfuscation wasn't completely perfect, but looking at the sections in Ghidra (or `readelf`), that's the only section that makes sense considering our partial deobfuscation. 
+{
+  ushort uVar1;
+  long lVar2;
+  long lVar3;
+  int iVar4;
+  uint *puVar5;
+  
+  if (param_2 == (int *)0x0 || param_4 == (uint **)0x0) {
+    return 1;
+  }
+  if (param_1 == (char *)0x0) {
+    return 1;
+  }
+  if ((((*param_2 == 0x464c457f) && (*(char *)(param_2 + 1) == '\x02')) &&
+      (lVar2 = *(long *)(param_2 + 10), lVar2 != 0)) &&
+     (uVar1 = *(ushort *)(param_2 + 0xf), uVar1 != 0)) {
+    lVar3 = *(long *)((long)param_2 + (ulong)*(ushort *)((long)param_2 + 0x3e) * 0x40 + lVar2 + 0x18
+                     );
+    if (uVar1 != 1) {
+      puVar5 = (uint *)((long)param_2 + lVar2 + 0x40);
+      do {
+        iVar4 = strcmp((char *)((ulong)*puVar5 + lVar3 + (long)param_2),param_1);
+        if (iVar4 == 0) {
+          *param_4 = puVar5;
+          return 0;
+        }
+        puVar5 = puVar5 + 0x10;
+      } while (puVar5 != (uint *)((long)param_2 + (ulong)(uVar1 - 2) * 0x40 + lVar2 + 0x80));
+      return 1;
+    }
+  }
+  return 1;
+}
+```
 
-Now it may sound weird that we have a function pointer pointing to a section, as opposed to an actual function, but this actually works assuming that the section starts with a function. The function pointer, when invoked, will just execute that first function
+So what `fill_in_DAT` is doing is that it reads an ELF file into memory, searches its section headers for a specific section name (with `FUN_00105830`), maps the corresponding bytes into executable memory, and stores a function pointer to the start of that mapped region. In our case, that function pointer is `DAT_001231c8`
 
-Well, is there a function at `.init.checksum.validation`? 
+We are only given this one binary, so we can assume that the ELF it is getting the section from is itself. Now the question is what is the section? Well, it's `.init.checksum.vjag~oel2`. If we look at the call to `fill_in_DAT` again
+
+```c
+fill_in_DAT(*param_2,__ptr,&DAT_001231c8,&local_170)
+```
+
+`__ptr` is the second parameter, which we already stated is the section it is looking for. Ghidra makes the instructions look a little more hectic so I won't paste it here, but `__ptr` essentially contains the contents of the first obfuscated blob deobfuscation that we looked at in Binja
+
+```c
+00002ca3          int128_t obfuscated_blob1_1 = obfuscated_blob1
+00002cb4          *rax_19 = obfuscated_blob1
+00002cb7          *(rax_19 + 0xa) = obfuscated_blob1_1
+00002cbf          uint128_t zmm0_2 = *rax_19 ^ xor_key1[0].o
+00002cc7          *(rax_19 + 0x18) ^= 0x66
+00002ccb          *rax_19 = zmm0_2
+00002cd7          rax_19[1].q = (zx.o(rax_19[1].q) ^ zx.o(0x3365396432623736)).q
+```
+
+So yes, the section is `.init.checksum.vjag~oel2`
+
+Okay, well, that's not entirely true. It's actally `.init.checksum.validation`, it appears that our deobfuscation wasn't completely perfect, but looking at the sections in Ghidra (or `readelf`), that's the only section that makes sense considering our partial deobfuscation. 
+
+Now it may sound weird to have a function pointer pointing to executable memory containing the data at some random section rather than a traditional function, but this works if the section begins with executable code. When the function pointer is invoked, execution starts at the first instruction that was in the section. 
+
+Well, is there executable code at `.init.checksum.validation`? 
 
 We have to force Ghidra to disassemble the instructions, but indeed, `.init.checksum.validation` begins with
 
@@ -1415,11 +1473,11 @@ undefined8 deobfuscate(long param_1,long param_2,long param_3,long param_4)
 }
 ```
 
-Notice anything? They're essentially exactly the same. So this is why we couldn't find any references to the deobfuscation function we found. It's because the malware is assembling a function pointer to `.init.checksum.validation`, which contains the actual deobfuscation function it uses
+Notice anything? They're essentially exactly the same. So this is why we couldn't find any references to the deobfuscation function we found. It's because the malware is initializing a function pointer that points to executable memory containing a copy of the `.init.checksum.validation` section's contents, which contains the actual deobfuscation function the malware uses
 
-This also explains why the first obfuscated blob was deobfuscated in `main`, instead of using the deobfuscation function. It's because the pointer to the deobfuscation function (or to the `.init.checksum.validation` section to be exact) hadn't been set up yet. After the function pointer is set up, the deobfuscation function is utilized for all subsequent use cases. 
+This also explains why the first obfuscated blob was deobfuscated in `main`, instead of using the deobfuscation function. It's because the pointer to the deobfuscation function hadn't been set up yet. After the function pointer is set up, the deobfuscation function is utilized for all subsequent use cases. 
 
-Now another question that might arise is why have both. Why have a deobfuscation function for everyone to see, but is never invoked, and then have the exact same function hidden in `.init.checksum.validation`. Perhaps it was intentional by the devs to help static analyzers of this malware, or it was a compiler artifact, or perhaps it's because somewhere, the malware uses the non-hidden function to write to `.init.checksum.validation`
+Now another question that might arise is why have both. Why have a deobfuscation function for everyone to see, but is never invoked, and then have the exact same function hidden in `.init.checksum.validation`. Perhaps it was intentional by the devs to help static analyzers of this malware, or maybe it was a compiler artifact
 
 Regardless of the reason, now we understand how exactly the malware is deobfuscating, and the purpose of the `.init.checksum.validation` section. Now, on to understanding the purpose of the next two sections. 
 
