@@ -418,7 +418,7 @@ We are given a memory dump, so some digital forensics is required before we can 
 Volatility will of course be our go to tool for this. We need a symbol table though so that we can get actual useful data from the memory dump. We can do this with the tool, [drarf2json](https://github.com/volatilityfoundation/dwarf2json)
 
 ```
-~/dwarf2json/dwarf2json --elf vmlinux --system-map System.map --output symtable.json
+~/dwarf2json/dwarf2json linux --elf vmlinux --system-map System.map > symtable.json
 ```
 
 I first started with looking at processes with Volatility (make sure `--symbol-dirs` is pointing to the directory that you made your symbol table JSON file in)
