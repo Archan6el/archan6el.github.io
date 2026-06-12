@@ -816,7 +816,7 @@ ROPgadget thankfully supports MIPS and can help us find gadgets to use by runnin
 
 > Note that I am trying to find gadgets in libc and not in our actual binary, since all the addresses in the actual binary begin with a null byte, which would find us having the same issue as ret2heap
 
-We want a gadget that loads the register `$a0`, which in MIPS, is where the first parameter is loaded. We also want a gadget that executes / returns to a function, which unlike in x86 which is `ret`, MIPS just jumps, so it'd be some variation of a jump instruction. 
+We want a gadget that loads the register `a0`, which in MIPS, is where the first parameter is loaded. We also want a gadget that executes / returns to a function, which unlike in x86 which is `ret`, MIPS just jumps, so it'd be some variation of a jump instruction. 
 
 We also want it to use any `s(n)` register, since due to the stack overflow, we have complete control over them.
 
