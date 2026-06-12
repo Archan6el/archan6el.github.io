@@ -832,7 +832,7 @@ There is one thing you might be worried about. Does the gadget not load the para
 
 Since this is MIPS, this actually *isn't* a problem. This is due to MIPS' [delay slot](https://en.wikipedia.org/wiki/Delay_slot) feature. It's essentially a feature in which a instruction slot is executed without the effects of a preceding instruction. So in our gadget, `lw $a0, 0($s0)` is a delay slot. So our parameter actually *will* be ready. 
 
-After playing around with the buffer overflow, I find that we can control a whole lot of registers, since they are all to be loaded from the stack before the segfault. This includes the general registers `s0 - s8`, and naturally since the registers are loaded from the stack, offsets from these registers. With enough trial and error, I find where exactly on the stack the registers get their values from. So we can definitely control what gets placed at `$s0` and `$s0 + 0xc`. 
+After playing around with the buffer overflow, I find that we can control a whole lot of registers, since they are all loaded from the stack before the segfault. This includes the general registers `s0 - s8`, and naturally since the registers are loaded from the stack, offsets from these registers. With enough trial and error, I find where exactly on the stack the registers get their values from. So we can definitely control what gets placed at `$s0` and `$s0 + 0xc`. 
 
 So our goal is to place the address of `system` at `$s0 + 0xc`, since that gets loaded into `$t9`, and then jumped to
 
