@@ -2352,9 +2352,13 @@ Here, let's do it again with a different dummy USB password:
 ![image](https://github.com/user-attachments/assets/44854f27-5f47-4526-b07a-19e2b92752dc)
 ![image](https://github.com/user-attachments/assets/a5e7853b-90b1-4dd8-8814-3ca41ef9a19f)
 
-It might not be apparent from these 2 examples alone, but after a lot of testing, one common thing kept happening. The last 2 characters of the decrypted password is always wrong, every time. 
+It might not be apparent from these 2 examples alone, but after a lot of testing, one common thing kept happening. The last 2 characters of the decrypted password are always wrong, every time. 
 
-That could be it. What if we do have the correct USB password, but the last two characters are just wrong? There's only one real way to find out. Time to brute force. 
+That could be it. What if we do have the correct USB password, but the last two characters are just wrong?
+
+After some more research into AES-CFB, this starts to make sense. AES is a block cipher that operates on 128-bit (16-byte) blocks. In CFB mode, the first block is decrypted using a keystream generated from the IV, while subsequent blocks use a keystream generated from the previous ciphertext block. Because the password is 18 bytes long, the first 16 bytes fall entirely within the first AES block and decrypt correctly, as we have seen. The final 2 bytes belong to a second block, and recovering them requires information derived from the previous ciphertext block. Since we do not have all of the information needed to generate the correct keystream for that second block, the last two characters are consistently decrypted incorrectly
+
+The easiest solution is to just brute force those last 2 bytes, so let's try that
 
 First of all, let's mount the encrypted disk drive. We extract the disk drive from the archive:
 
