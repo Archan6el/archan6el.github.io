@@ -1,12 +1,12 @@
 ---
 title: 'Reversing and Exploiting a Vulnerable OpenWrt Router'
-description: 'Writeup of reverse engineering and exploiting a vulnerable MIPS OpenWRT Router as part of an extra challenge for a Summer internship program'
+description: 'Writeup of reverse engineering and exploiting a vulnerable MIPS OpenWrt Router as part of an extra challenge for a Summer internship program'
 date: 2025-06-16
 tags: ['Reverse Engineering', 'Vulnerability Research', 'Binary Exploitation']
 authors: ['Archan6el']
 ---
 
-In this write up, we will go over reverse engineering and exploiting a MIPS OpenWRT router in order to get RCE and a reverse shell. 
+In this write up, we will go over reverse engineering and exploiting a MIPS OpenWrt router in order to get RCE and a reverse shell. 
 
 ## Context / Setup
 
@@ -14,7 +14,7 @@ Refer to [setup.md](https://github.com/Archan6el/MIPS-Router-Exploit-RCE-Writeup
 
 For context, this was kindly given to us as an extra challenge as part of a Summer internship program. 
 
-It's an OpenWRT router image that is emulated using QEMU. To aid in debugging, we’re running a GDB server inside the emulated environment and connecting to it from our host machine.
+It's an OpenWrt router image that is emulated using QEMU. To aid in debugging, we’re running a GDB server inside the emulated environment and connecting to it from our host machine.
 
 ## "Fuzzing"
 
